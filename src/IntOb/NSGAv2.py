@@ -209,7 +209,7 @@ class NSGA(object):
         'mutation_prob': 0.2,
         'crossover_prob': 0.7,
         'population_size': 300,
-        'selection_pressure': 0.8,
+        'selection_pressure': 1.0,
     }
 
     def __init__(self, fs, bounds, ranges, **params):
@@ -227,12 +227,15 @@ class NSGA(object):
         _, a_rank, a_crowd = a
         _, b_rank, b_crowd = b
         # better = greater rank, or smaller crowding distance
-        return b if (a_rank, -a_crowd) < (b_rank, -b_crowd) else a
+        #return (a_rank, -a_crowd) >= (b_rank, -b_crowd)
+        return a_rank >= b_rank #or (a_rank == b_rank and a_crowd <= b_crowd)
 
     @staticmethod
     def crowdKey(a):
         _, a_rank, a_crowd = a
-        return (a_rank, -a_crowd)
+        return 0
+        #return -a_rank
+        #return a_crowd
 
 
     def createOffspring(self, evaluated, N):

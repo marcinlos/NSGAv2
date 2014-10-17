@@ -20,5 +20,5 @@ def onStep(step, P):
 
 
 alg = nsga.NSGA((f, g), bounds, ranges) 
-solution = alg.optimize(20, onStep)
+solution = alg.optimize(30, onStep)
 
