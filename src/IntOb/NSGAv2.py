@@ -41,7 +41,7 @@ def randomPopulation(size, bounds):
 
 
 def dominates(a, b):
-    """ Tests whether a dominates b, where a, b are vectors with the same
+    """ Tests whether b dominates a, where a, b are vectors with the same
     number of components.
     """
     ab = zip(a, b)
@@ -50,8 +50,8 @@ def dominates(a, b):
 
 def nonDominatedSort(f, points):
     """ Partitions set of points into non-dominance classes with respect to
-    their values of p, i.e. calculates subsets such that points of "lower"
-    subset are dominated by points of "higher" subsets, and no points dominate
+    their values of p, i.e. calculates subsets such that no points of "lower"
+    subset dominate points of "higher" subsets, and no points dominate
     others in each set.
 
     f       - evaluating function
@@ -66,9 +66,9 @@ def nonDominatedSort(f, points):
         for q in points:
             fp = f(p)
             fq = f(q)
-            if dominates(fq, fp):
+            if dominates(fp, fq):
                 S[p].add(q)
-            elif dominates(fp, fq):
+            elif dominates(fq, fp):
                 n[p] += 1
         if n[p] == 0:
             rank[p] = 0
