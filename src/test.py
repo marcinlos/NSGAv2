@@ -21,7 +21,21 @@ class Test(unittest.TestCase):
         self.assertFalse(nsga.dominates(a, b))
 
     def test_nonDominatedSort(self):
-        pass
+        n = 10
+        points = nsga.randomPopulation(n, [(0,1), (2,3)])
+        f = lambda (a, b) : (a + b, a * b)
+        fronts, ranks = nsga.nonDominatedSort(f, points)
+
+        for i in xrange(0, len(fronts)):
+            for j in xrange(0, i):
+                for p in fronts[i]:
+                    for q in fronts[j]:
+                        fp = f(p)
+                        fq = f(q)
+                        self.assertFalse(nsga.dominates(fp, fq))
+        for p in points:
+            rank = ranks[p]
+            self.assertIn(p, fronts[rank])
 
 
 if __name__ == '__main__':

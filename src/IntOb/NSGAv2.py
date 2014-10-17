@@ -56,6 +56,9 @@ def nonDominatedSort(f, points):
 
     f       - evaluating function
     points  - points in domain space
+
+    Returns: tuple consisting of list of sets (classes of dominance), and map
+             with index of class for each point
     """
     S = defaultdict(set)
     n = defaultdict(int)
