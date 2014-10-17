@@ -1,6 +1,7 @@
 
 from random import random
 from collections import defaultdict
+from operator import itemgetter
 
 
 def lerp(a, b, t):
@@ -92,6 +93,40 @@ def nonDominatedSort(f, points):
     return (front, rank)
 
 
+def sortByValue(points, vals):
+    """ Sorts points according to values
+    """
+    return sorted(zip(points, vals), key=itemgetter(1))
+
+
+def crowdingDistance(points, vals, bounds):
+    """ Calculates 'crowding distance' - approximation to the perimeter of the
+    hypercube around the value for each point that does not contain any other
+    values.
+
+    points - points in domain space
+    values - precalculated values of the evaluation functions for each point
+    bounds - extremal values of each evaluation functions
+    """
+    dist = defaultdict(float)
+    n = len(vals[0])
+
+    for i in xrange(0, n):
+        ivals = [v[i] for v in vals]
+        ipoints = sortByValue(points, ivals)
+
+        dist[ipoints[0][0]] += float('+inf')
+        dist[ipoints[-1][0]] += float('+inf')
+
+        d = bounds[i][1] - bounds[i][0]
+
+        for j in xrange(1, len(points) - 1):
+            p  = ipoints[j][0]
+            vp = ipoints[j - 1][1]
+            vn = ipoints[j + 1][1]
+            dist[p] += (vn - vp) / float(d)
+
+    return dist
 
 
 
