@@ -24,14 +24,16 @@ class Test(unittest.TestCase):
         n = 10
         points = nsga.randomPopulation(n, [(0,1), (2,3)])
         f = lambda (a, b) : (a + b, a * b)
-        fronts, ranks = nsga.nonDominatedSort(f, points)
+        vals = map(f, points)
+        fronts, ranks = nsga.nonDominatedSort(points, vals)
+        valueMap = dict(zip(points, vals))
 
         for i in xrange(0, len(fronts)):
             for j in xrange(0, i):
                 for p in fronts[i]:
                     for q in fronts[j]:
-                        fp = f(p)
-                        fq = f(q)
+                        fp = valueMap[p]
+                        fq = valueMap[q]
                         self.assertFalse(nsga.dominates(fp, fq))
         for p in points:
             rank = ranks[p]
@@ -59,6 +61,19 @@ class Test(unittest.TestCase):
         # Works, but probably can fail if the implementation of crowdingDistance
         # changes, since I guess it compares floating point values exactly
         self.assertDictEqual(dist, expected)
+
+    def test_mutation(self):
+        a = (0.3, 0.7)
+        bounds = [(0, 1), (0.6, 0.8)]
+        max_changes = (0.5, 0.2)
+
+        for _ in xrange(100):
+            b = nsga.mutation(a, 1, bounds, max_changes)
+            for i, (x, y) in enumerate(zip(a, b)):
+                self.assertLessEqual(abs(x - y), max_changes[i])
+                m, M = bounds[i]
+                self.assertGreaterEqual(y, m)
+                self.assertLessEqual(y, M)
 
 
 if __name__ == '__main__':

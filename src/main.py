@@ -1,14 +1,24 @@
 
 import IntOb.NSGAv2 as nsga
 
-vals = {
-    (0.5, 0.5),
-    (0.3, 0.7),
-    (0.5, 0.6)
-}
+f = lambda (x, y): x
+g = lambda (x, y): 1 - x * y
 
-fronts, ranks = nsga.nonDominatedSort(lambda x: x, vals)
+bounds = [(0,1),(0,1)] 
+ranges = [(0,1),(0,1)] 
+
+def onStep(step, P):
+
+    if step % 1 == 0:
+        print 'step', step
+        with open('step_{:04}.dat'.format(step), 'w') as out:
+            for p in P:
+                x = f(p)
+                y = g(p)
+                line = '{:20} {:20}\n'.format(x, y)
+                out.write(line)
 
 
-for f in fronts:
-    print f
+alg = nsga.NSGA((f, g), bounds, ranges) 
+solution = alg.optimize(20, onStep)
+
