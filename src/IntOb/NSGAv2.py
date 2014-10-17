@@ -1,5 +1,6 @@
 
 from random import random
+from collections import defaultdict
 
 
 def lerp(a, b, t):
@@ -31,11 +32,63 @@ def randVector(bounds):
 
 
 def randomPopulation(size, bounds):
-    """
-    Creates random initial population - set of points.
+    """ Creates random initial population - set of points.
     
     size   - number of points to create
     bounds - bounds for each dimension
     """
     return {randVector(bounds) for _ in xrange(size)}
+
+
+def dominates(a, b):
+    """ Tests whether a dominates b, where a, b are vectors with the same
+    number of components.
+    """
+    ab = zip(a, b)
+    return all(x <= y for x, y in ab) and any(x  < y for x, y in ab)
+
+
+def nonDominatedSort(f, points):
+    """ Partitions set of points into non-dominance classes with respect to
+    their values of p, i.e. calculates subsets such that points of "lower"
+    subset are dominated by points of "higher" subsets, and no points dominate
+    others in each set.
+
+    f       - evaluating function
+    points  - points in domain space
+    """
+    S = defaultdict(set)
+    n = defaultdict(int)
+    rank = defaultdict(int)
+    front = [set()]
+
+    for p in points:
+        for q in points:
+            fp = f(p)
+            fq = f(q)
+            if dominates(fq, fp):
+                S[p].add(q)
+            elif dominates(fp, fq):
+                n[p] += 1
+        if n[p] == 0:
+            rank[p] = 0
+            front[0].add(p)
+    i = 0
+    while front[i]:
+        Q = set()
+        for p in front[i]:
+            for q in S[p]:
+                n[q] -= 1
+                if n[q] == 0:
+                    rank[q] = i + 1
+                    Q.add(q)
+        i += 1
+        front.append(Q)
+
+    front.pop()  # last set on the list is empty
+    return (front, rank)
+
+
+
+
 
