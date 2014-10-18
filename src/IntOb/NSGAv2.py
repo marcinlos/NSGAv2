@@ -227,15 +227,15 @@ class NSGA(object):
         _, a_rank, a_crowd = a
         _, b_rank, b_crowd = b
         # better = greater rank, or smaller crowding distance
-        #return (a_rank, -a_crowd) >= (b_rank, -b_crowd)
-        return a_rank >= b_rank #or (a_rank == b_rank and a_crowd <= b_crowd)
+        return (a_rank, -a_crowd) >= (b_rank, -b_crowd)
+        #return a_rank >= b_rank or (a_rank == b_rank and a_crowd <= b_crowd)
 
     @staticmethod
     def crowdKey(a):
         _, a_rank, a_crowd = a
         return 0
         #return -a_rank
-        #return a_crowd
+        return a_crowd
 
 
     def createOffspring(self, evaluated, N):
