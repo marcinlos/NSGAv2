@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import sys
+import re
 from subprocess import Popen, PIPE
 
 
@@ -10,7 +11,8 @@ text = '''
     set output "%(output)s"
     set xrange [%(xrange)s]
     set yrange [%(yrange)s]
-    plot "%(file)s" using 1:2 pt 7 ps 0.8
+    plot "%(file)s" using 1:2 pt 7 ps 0.8 notitle
+    print("%(file)s > %(output)s")
 '''
 
 params = {
@@ -18,12 +20,16 @@ params = {
     'yrange': '0:1',
 }
 
+def get_step(name):
+    nums = re.findall(r'\d+', name)
+    return nums[0] if nums else '(?)'
+
+p = Popen(['gnuplot'], shell=True, stdin=PIPE)
 
 for name in sys.argv[1:]:
-    #name = sys.argv[1]
-    #out = sys.argv[2]
     out = name.replace('.dat', '.png')
-    title = 'Step'
+    step = get_step(name)
+    title = 'Step %s' % step
 
     conf = {
         'file': name,
@@ -32,8 +38,7 @@ for name in sys.argv[1:]:
     }
 
     cmd = text % dict(params, **conf)
+    p.stdin.write(cmd)
 
-    print name, '>', out
-    p = Popen(['gnuplot'], shell=True, stdin=PIPE)
-    p.communicate(cmd)
+p.communicate()
 

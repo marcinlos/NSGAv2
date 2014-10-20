@@ -1,7 +1,7 @@
 
 from random import random, randint, sample, shuffle
 from collections import defaultdict
-from operator import itemgetter
+from operator import itemgetter, mul
 
 
 
@@ -62,6 +62,22 @@ def dominates(a, b):
     return all(x <= y for x, y in ab) and any(x  < y for x, y in ab)
 
 
+def inverslyDominates(a, b):
+    """ Tests whether b dominates a inversly, or is equal to a, where a, b 
+    are vectors with the same number of components.
+    """
+    ab = zip(a, b)
+    return all(x >= y for x, y in ab) and any(x > y for x, y in ab)
+
+
+def weaklyInverslyDominates(a, b):
+    """ Tests whether b dominates a inversly, or is equal to a, where a, b 
+    are vectors with the same number of components.
+    """
+    ab = zip(a, b)
+    return all(x >= y for x, y in ab)
+
+
 def nonDominatedSort(points, vals):
     """ Partitions set of points into non-dominance classes with respect to
     their values, i.e. calculates subsets such that no points of "lower"
@@ -105,6 +121,55 @@ def nonDominatedSort(points, vals):
     return (front, rank)
 
 
+def partialSort(xs, less):
+    S = defaultdict(list)
+    n = defaultdict(int)
+    rank = defaultdict(int)
+    front = [[]]
+
+    for x in xs:
+        for y in xs:
+            if less(x, y):
+                S[x].append(y)
+            elif less(y, x):
+                n[x] += 1
+        if n[x] == 0:
+            rank[x] = 0
+            front[0].append(x)
+    i = 0
+    while front[i]:
+        Q = []
+        for x in front[i]:
+            for y in S[x]:
+                n[y] -= 1
+                if n[y] == 0:
+                    rank[y] = i + 1
+                    Q.append(y)
+        i += 1
+        front.append(Q)
+
+    front.pop()  # last set on the list is empty
+    return (front, rank)
+
+
+def maximal(xs, less):
+    """ Finds maximal (nondominated) elements of collection xs, wrt ordering
+    defined by argument 'less'.
+
+    xs   - iterable collection
+    less - comparator representing strong order relation <, function of two
+           arguments with less(a, b) == True iff a < b
+    """
+    M = []
+    for x in xs:
+        for y in xs:
+            if less(x, y):
+                break
+        else:
+            M.append(x)
+    return M
+
+
 def sortByValue(points, vals):
     """ Sorts points according to values
     """
@@ -139,6 +204,86 @@ def crowdingDistance(points, vals, ranges):
             dist[p] += (vn - vp) / float(d)
 
     return dist
+
+# Hypervolume metric
+
+def volBetween(a, b):
+    """ Computes volume of cuboid spanned by a and b
+    """
+    sides = [abs(x - y) for x, y in zip(a, b)]
+    return reduce(mul, sides, 1)
+
+
+def findSmallestGreater(x, xs, i):
+    """ Finds element of collection xs that has smallest i-th component greater
+    than that of x
+    """
+    best = float('+inf')
+    for v in xs:
+        if v[i] > x[i] and v[i] < best:
+            best = v[i]
+    return best
+
+
+def changed(x, i, xi):
+    """ Returns copy of vector x with i-th coordinate changed to xi
+    """
+    xx = list(x)
+    xx[i] = xi
+    return tuple(xx)
+
+
+def oppositeVertex(x, p, xs):
+    """ Finds opposite vertex of the cuboid (inversly) dominated exclusively
+    by x, not by any other element of xs, with respect to reference point p.
+    """
+    n = len(x)
+    xs = list(xs)
+    xs.append(p)
+    v = [findSmallestGreater(x, xs, i) for i in xrange(n)]
+    for i in xrange(n):
+        if v[i] == float('+inf'):
+            v[i] = p[i]
+    return tuple(v)
+
+
+def spawns(x, z, v, p, xs):
+    """
+    x  - vertex
+    z  - 
+    v  - opposite vertex
+    p  - reference point
+    xs - all the points
+    """
+    ys = []
+    for i in xrange(z):
+        if x[i] != p[i]:
+            y = changed(x, i, v[i])
+            if not any(weaklyInverslyDominates(y, xx) for xx in xs):
+                ys.append((y, i))
+    return ys
+
+
+def hypervolume(p, xs):
+    """ Computes hypervolume of union of cuboids spanned by p and xs.
+
+    p    - reference point
+    xs - solution
+    """
+    n = len(p)
+    points = [(x, n) for x in maximal(xs, inverslyDominates)]
+    volume = 0
+
+    while points:
+        x, z = points.pop()
+        xxs = [a for a, _ in points]
+        v = oppositeVertex(x, p, xxs)
+        volume += volBetween(x, v)
+        ys = spawns(x, z, v, p, xxs)
+        points = ys + points
+
+    return volume
+
 
 
 def mutation(a, p, bounds, max_changes):
@@ -178,6 +323,18 @@ def onePointCrossover(a, b):
     ab = a[:i] + b[i:]
     ba = b[:i] + a[i:]
     return (ab, ba)
+
+
+def crossover(a, b):
+    c1 = []
+    c2 = []
+    for x, y in zip(a, b):
+        u = random()
+        f = u #pow(2 * u, 1 / (1 + 0.3))
+
+        c1.append(0.5 * ((1 - f) * x + (1 + f) * y))
+        c2.append(0.5 * ((1 + f) * x + (1 - f) * y))
+    return (tuple(c1), tuple(c2))
 
 
 def select(population, compare, N, p):
@@ -234,7 +391,6 @@ class NSGA(object):
     def crowdKey(a):
         _, a_rank, a_crowd = a
         return 0
-        #return -a_rank
         return a_crowd
 
 
@@ -249,7 +405,7 @@ class NSGA(object):
         for i in xrange(pairsToMate):
             a = Q[2 * i]
             b = Q[2 * i + 1]
-            ab, ba = onePointCrossover(a, b)
+            ab, ba = crossover(a, b) #onePointCrossover(a, b)
             Q[2 * i] = ab
             Q[2 * i + 1] = ba
 

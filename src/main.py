@@ -3,28 +3,37 @@
 import IntOb.NSGAv2 as nsga
 from itertools import repeat
 from math import sqrt, sin, pi
+import sys
 
 
-def makeCallback(F):
+def makeCallback(F, ranges, volume):
     f, g = F
+    refpoint = tuple(r[1] for r in ranges)
 
     def onStep(step, P):
         print 'step', step
+
+        vals = [(f(p), g(p)) for p in P]
+        vol = nsga.hypervolume(refpoint, vals)
+
+        if volume:
+            print 'HVR = {:.2%}'.format(vol / volume)
+        else:
+            print 'HV = {}'.format(vol)
+
         with open('step_{:04}.dat'.format(step), 'w') as out:
-            for p in P:
-                x = f(p)
-                y = g(p)
+            for x, y in vals:
                 line = '{:20} {:20}\n'.format(x, y)
                 out.write(line)
     return onStep
 
 
-steps = 100
+steps = int(sys.argv[1])
 
 
-def run(F, bounds, ranges):
+def run(F, bounds, ranges, volume=None):
     alg = nsga.NSGA(F, bounds, ranges) 
-    return alg.optimize(steps, makeCallback(F))
+    return alg.optimize(steps, makeCallback(F, ranges, volume))
 
 
 def simple():
@@ -78,7 +87,7 @@ def ZDT3():
 
 
 if __name__ == '__main__':
-    #ZDT1()
+    ZDT1()
     #ZDT2()
-    ZDT3()
+    #ZDT3()
 
