@@ -7,24 +7,28 @@ import sys
 
 
 def makeCallback(F, ranges, volume):
+    pass
     f, g = F
     refpoint = tuple(r[1] for r in ranges)
 
     def onStep(step, P):
         print 'step', step
 
-        vals = [(f(p), g(p)) for p in P]
-        vol = nsga.hypervolume(refpoint, vals)
+        if step % 10 == 0:
+            vals = [guy.val for guy in P]
+            vol = nsga.hypervolume(refpoint, vals)
 
-        if volume:
-            print 'HVR = {:.2%}'.format(vol / volume)
-        else:
-            print 'HV = {}'.format(vol)
+            if volume:
+                print 'HVR = {:.2%}'.format(vol / volume)
+            else:
+                print 'HV = {}'.format(vol)
 
-        with open('step_{:04}.dat'.format(step), 'w') as out:
-            for x, y in vals:
-                line = '{:20} {:20}\n'.format(x, y)
-                out.write(line)
+            with open('step_{:04}.dat'.format(step), 'w') as out:
+                for guy in P:
+                    x, y = guy.val
+                    line = '{:20} {:20}\n'.format(x, y)
+                    out.write(line)
+
     return onStep
 
 
@@ -87,7 +91,6 @@ def ZDT3():
 
 
 if __name__ == '__main__':
-    ZDT1()
-    #ZDT2()
-    #ZDT3()
+    problem = sys.argv[1].upper()
+    impl = globals()[problem]
 

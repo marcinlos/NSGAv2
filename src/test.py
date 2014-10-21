@@ -61,20 +61,20 @@ class Test(unittest.TestCase):
         self.assertEqual(nsga.volBetween(a, b), 6)
 
 
-    def test_crowdingDistance(self):
-        points = [1, 2, 3, 4]
-        vals   = [(3, 3), (1, 5), (2, 4), (0, 6)]
-        expected = {
-            1: float('+inf'),
-            2: 2.0/3 + 2.0/3, 
-            3: 2.0/3 + 2.0/3, 
-            4: float('+inf'),
-        }
+    #def test_crowdingDistance(self):
+    #    points = [1, 2, 3, 4]
+    #    vals   = [(3, 3), (1, 5), (2, 4), (0, 6)]
+    #    expected = {
+    #        1: float('+inf'),
+    #        2: 2.0/3 + 2.0/3, 
+    #        3: 2.0/3 + 2.0/3, 
+    #        4: float('+inf'),
+    #    }
 
-        dist = nsga.crowdingDistance(points, vals, [(0, 3), (3,6)])
-        # Works, but probably can fail if the implementation of crowdingDistance
-        # changes, since I guess it compares floating point values exactly
-        self.assertDictEqual(dist, expected)
+    #    dist = nsga.crowdingDistance(points, vals, [(0, 3), (3,6)])
+    #    # Works, but probably can fail if the implementation of crowdingDistance
+    #    # changes, since I guess it compares floating point values exactly
+    #    self.assertDictEqual(dist, expected)
 
 
     def test_mutation(self):

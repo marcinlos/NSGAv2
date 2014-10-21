@@ -11,7 +11,8 @@ text = '''
     set output "%(output)s"
     set xrange [%(xrange)s]
     set yrange [%(yrange)s]
-    plot "%(file)s" using 1:2 pt 7 ps 0.8 notitle
+    plot "%(file)s" using 1:2 pt 7 ps 0.8 notitle,\
+         "%(exact)s" using 1:2 with lines title "Exact front"
     print("%(file)s > %(output)s")
 '''
 
@@ -25,8 +26,9 @@ def get_step(name):
     return nums[0] if nums else '(?)'
 
 p = Popen(['gnuplot'], shell=True, stdin=PIPE)
+exact = sys.argv[1]
 
-for name in sys.argv[1:]:
+for name in sys.argv[2:]:
     out = name.replace('.dat', '.png')
     step = get_step(name)
     title = 'Step %s' % step
@@ -35,6 +37,7 @@ for name in sys.argv[1:]:
         'file': name,
         'output': out,
         'title': title,
+        'exact': exact,
     }
 
     cmd = text % dict(params, **conf)

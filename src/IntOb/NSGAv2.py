@@ -1,7 +1,7 @@
 
 from random import random, randint, sample, shuffle
 from collections import defaultdict
-from operator import itemgetter, mul
+from operator import itemgetter, attrgetter, mul
 
 
 
@@ -45,14 +45,6 @@ def randVector(bounds):
     return tuple(rand(a, b) for (a, b) in bounds)
 
 
-def randomPopulation(size, bounds):
-    """ Creates random initial population - set of points.
-    
-    size   - number of points to create
-    bounds - bounds for each dimension
-    """
-    return [randVector(bounds) for _ in xrange(size)]
-
 
 def dominates(a, b):
     """ Tests whether b dominates a, where a, b are vectors with the same
@@ -78,53 +70,18 @@ def weaklyInverslyDominates(a, b):
     return all(x >= y for x, y in ab)
 
 
-def nonDominatedSort(points, vals):
-    """ Partitions set of points into non-dominance classes with respect to
-    their values, i.e. calculates subsets such that no points of "lower"
-    subset dominate points of "higher" subsets, and no points dominate
-    others in each set.
+def partialSort(xs, less):
+    """ Partitions set of points into classes wrt strong order given by 
+    comparator function 'less'.
 
-    points  - points in domain space
-    vals    - values at points
+    xs   - iterable collection
+    less - comparator representing strong order relation <, function of two
+           arguments with less(a, b) == True iff a < b
 
-    Returns: tuple consisting of list of sets (classes of dominance), and map
-             with index of class for each point
+    Returns: tuple consisting of list of sets (classes of dominance)
     """
     S = defaultdict(list)
     n = defaultdict(int)
-    rank = defaultdict(int)
-    front = [list()]
-    pairs = zip(points, vals)
-
-    for p, fp in pairs:
-        for q, fq in pairs:
-            if dominates(fp, fq):
-                S[p].append(q)
-            elif dominates(fq, fp):
-                n[p] += 1
-        if n[p] == 0:
-            rank[p] = 0
-            front[0].append(p)
-    i = 0
-    while front[i]:
-        Q = list()
-        for p in front[i]:
-            for q in S[p]:
-                n[q] -= 1
-                if n[q] == 0:
-                    rank[q] = i + 1
-                    Q.append(q)
-        i += 1
-        front.append(Q)
-
-    front.pop()  # last set on the list is empty
-    return (front, rank)
-
-
-def partialSort(xs, less):
-    S = defaultdict(list)
-    n = defaultdict(int)
-    rank = defaultdict(int)
     front = [[]]
 
     for x in xs:
@@ -134,7 +91,6 @@ def partialSort(xs, less):
             elif less(y, x):
                 n[x] += 1
         if n[x] == 0:
-            rank[x] = 0
             front[0].append(x)
     i = 0
     while front[i]:
@@ -143,13 +99,12 @@ def partialSort(xs, less):
             for y in S[x]:
                 n[y] -= 1
                 if n[y] == 0:
-                    rank[y] = i + 1
                     Q.append(y)
         i += 1
         front.append(Q)
 
     front.pop()  # last set on the list is empty
-    return (front, rank)
+    return front
 
 
 def maximal(xs, less):
@@ -170,40 +125,69 @@ def maximal(xs, less):
     return M
 
 
-def sortByValue(points, vals):
-    """ Sorts points according to values
+class Specimen(object):
+    """ Single element of the population
     """
-    return sorted(zip(points, vals), key=itemgetter(1))
+
+    def __init__(self, x):
+        self.x = tuple(x)
+        self.rank = None 
+        self.val = None
+        self.crowd = None
+
+    def __str__(self):
+        return '|{}|'.format(self.x)
+
+    def domain_dim(self):
+        return len(self.x)
+
+    def value_dim(self):
+        return len(self.val)
+
+    @staticmethod
+    def dominates(a, b):
+        return dominates(a.val, b.val)
+
+    @staticmethod
+    def crowdedCmp(a, b):
+        return (a.rank, -a.crowd) < (b.rank, -b.crowd)
 
 
-def crowdingDistance(points, vals, ranges):
+def randomPopulation(size, bounds):
+    """ Creates random initial population - set of points.
+    
+    size   - number of points to create
+    bounds - bounds for each dimension
+    """
+    return [Specimen(randVector(bounds)) for _ in xrange(size)]
+
+
+def computeCrowdingDistance(guys, ranges):
     """ Calculates 'crowding distance' - approximation to the perimeter of the
     hypercube around the value for each point that does not contain any other
     values.
 
-    points - points in domain space
-    values - precalculated values of the evaluation functions for each point
+    guys   - elements of the population
     ranges - extremal values of each evaluation functions
     """
-    dist = defaultdict(float)
-    n = len(vals[0])
+    n = guys[0].value_dim()
+
+    for guy in guys:
+        guy.crowd = 0
 
     for i in xrange(0, n):
-        ivals = [v[i] for v in vals]
-        ipoints = sortByValue(points, ivals)
+        guys.sort(key=lambda guy: guy.val[i])
 
-        dist[ipoints[0][0]] += float('+inf')
-        dist[ipoints[-1][0]] += float('+inf')
+        guys[ 0].crowd += float('+inf')
+        guys[-1].crowd += float('+inf')
 
         d = ranges[i][1] - ranges[i][0]
 
-        for j in xrange(1, len(points) - 1):
-            p  = ipoints[j][0]
-            vp = ipoints[j - 1][1]
-            vn = ipoints[j + 1][1]
-            dist[p] += (vn - vp) / float(d)
+        for j in xrange(len(guys) - 1):
+            x_prev = guys[j - 1].x[i]
+            x_next = guys[j + 1].x[i]
+            guys[j].crowd += (x_next - x_prev) / d
 
-    return dist
 
 # Hypervolume metric
 
@@ -285,6 +269,7 @@ def hypervolume(p, xs):
     return volume
 
 
+# Genetic operators
 
 def mutation(a, p, bounds, max_changes):
     """ Mutates each component of the vector with probability p, changing it
@@ -296,45 +281,36 @@ def mutation(a, p, bounds, max_changes):
     p           - probability of mutation
     bounds      - solution domain
     max_changes - maximal acceptable changes due to mutation for each somponent
+
+    Returns: new, modified specimen
     """
     b = []
-    for i, x in enumerate(a):
+    for i, x in enumerate(a.x):
         if tossCoin(p):
             c = max_changes[i]
             d = lerp(-c, c, random())
             m, M = bounds[i]
             x = clamp(x + d, m, M)
         b.append(x)
-    return tuple(b) 
-
-
-def onePointCrossover(a, b):
-    """ Simplest crossover schema - pick random component, and paste opposite
-    ends.
-
-    AAAAAAAAAAA
-    BBBBBBBBBBB
-        ^
-    AAAAABBBBBB
-    BBBBBAAAAAA
-    """
-    n = len(a)
-    i = randint(0, n - 1)
-    ab = a[:i] + b[i:]
-    ba = b[:i] + a[i:]
-    return (ab, ba)
+    return Specimen(b) 
 
 
 def crossover(a, b):
+    """ Performs crossover of to specimens, effectively interpolating between
+    their components.
+
+    a, b - specimens to mate
+    Returns: pair of children
+    """
     c1 = []
     c2 = []
-    for x, y in zip(a, b):
+    for x, y in zip(a.x, b.x):
         u = random()
         f = u #pow(2 * u, 1 / (1 + 0.3))
 
         c1.append(0.5 * ((1 - f) * x + (1 + f) * y))
         c2.append(0.5 * ((1 + f) * x + (1 - f) * y))
-    return (tuple(c1), tuple(c2))
+    return (Specimen(c1), Specimen(c2))
 
 
 def select(population, compare, N, p):
@@ -379,33 +355,19 @@ class NSGA(object):
         self.max_changes = [s * (M - m) for m, M in bounds]
 
 
-    @staticmethod
-    def crowdedComparison(a, b):
-        _, a_rank, a_crowd = a
-        _, b_rank, b_crowd = b
-        # better = greater rank, or smaller crowding distance
-        return (a_rank, -a_crowd) >= (b_rank, -b_crowd)
-        #return a_rank >= b_rank or (a_rank == b_rank and a_crowd <= b_crowd)
-
-    @staticmethod
-    def crowdKey(a):
-        _, a_rank, a_crowd = a
-        return 0
-        return a_crowd
-
-
-    def createOffspring(self, evaluated, N):
+    def createOffspring(self, P, N):
         p = self.params['selection_pressure']
-        selected = select(evaluated, NSGA.crowdedComparison, N, p)
-        Q = [p for p, _, _ in selected]
+        Q = select(P, Specimen.crowdedCmp, N, p)
         shuffle(Q)
-        cp = self.params['crossover_prob']
-        pairsToMate = int(lerp(0, N / 2, random()))
 
-        for i in xrange(pairsToMate):
+        cp = self.params['crossover_prob']
+        max_pairs = int(cp * N/2)
+        pairs = randint(0, max_pairs)
+
+        for i in xrange(pairs):
             a = Q[2 * i]
             b = Q[2 * i + 1]
-            ab, ba = crossover(a, b) #onePointCrossover(a, b)
+            ab, ba = crossover(a, b)
             Q[2 * i] = ab
             Q[2 * i + 1] = ba
 
@@ -413,49 +375,62 @@ class NSGA(object):
         return [mutation(a, mp, self.bounds, self.max_changes) for a in Q]
 
 
+    def evaluate(self, guys):
+        for guy in guys:
+            if guy.val is None:
+                guy.val = self.f(guy.x)
+
+
+    def nonDominatedSort(self, guys):
+        fronts = partialSort(guys, Specimen.dominates)
+
+        for rank, front in enumerate(fronts):
+            for guy in front:
+                guy.rank = rank
+
+        return fronts
+
+
     def optimize(self, steps, callback=None):
         N = self.params['population_size']
 
         P = randomPopulation(N, self.bounds)
-        vals = map(self.f, P)
-        v = dict(zip(P, vals))
+        self.evaluate(P)
+        self.nonDominatedSort(P)
 
-        fronts, ranks = nonDominatedSort(P, vals)
-        cdist = crowdingDistance(P, vals, self.ranges)
-        evaluated = [(p, ranks[p], cdist[p]) for p in P]
-        Q = self.createOffspring(evaluated, N)
+        computeCrowdingDistance(P, self.ranges)
+        Q = self.createOffspring(P, N)
 
         for step in xrange(steps):
             R = P + Q
-            vals = map(self.f, R)
-            v = dict(zip(R, vals))
-            fronts, ranks = nonDominatedSort(R, vals)
-            cdist = {}
+            self.evaluate(R)
+            fronts = self.nonDominatedSort(R)
+
+            print 'Fronts: {}'.format(len(fronts))
 
             Pnext = []
             i = 0
 
             while len(Pnext) + len(fronts[i]) <= N:
                 F = fronts[i]
-                Pnext.extend(F)
-                vals = [v[p] for p in F]
-                cdist.update(crowdingDistance(F, vals, self.ranges))
+                Pnext += F
+                self.evaluate(F)
+                computeCrowdingDistance(F, self.ranges)
                 i += 1
 
             reminder = N - len(Pnext)
+            print 'Whole {} fronts taken, reminder = {}'.format(i, reminder)
+
             if reminder > 0:
                 F = fronts[i]
-                vals = [v[p] for p in F]
-                cdist.update(crowdingDistance(F, vals, self.ranges))
+                self.evaluate(F)
+                computeCrowdingDistance(F, self.ranges)
 
-                evaluated = [(p, ranks[p], cdist[p]) for p in F]
-                evaluated.sort(key=NSGA.crowdKey)
-                F = [p for p, _, _ in evaluated]
-                Pnext.extend(F[-reminder:])
+                F.sort(key=attrgetter('crowd'))
+                Pnext += F[-reminder:]
+
             P = Pnext
-
-            evaluated = [(p, ranks[p], cdist[p]) for p in P]
-            Q = self.createOffspring(evaluated, N)
+            Q = self.createOffspring(P, N)
             
             if callback:
                 callback(step, P)
