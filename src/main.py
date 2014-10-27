@@ -32,11 +32,11 @@ def makeCallback(F, ranges, volume):
     return onStep
 
 
-steps = int(sys.argv[1])
+steps = int(sys.argv[2])
 
 
 def run(F, bounds, ranges, volume=None):
-    alg = nsga.NSGA(F, bounds, ranges) 
+    alg = nsga.NSGA(F, bounds, ranges)
     return alg.optimize(steps, makeCallback(F, ranges, volume))
 
 
@@ -45,8 +45,8 @@ def simple():
     g = lambda (x, y): 1 - x * y
     F = (f, g)
 
-    bounds = [(0, 1), (0, 1)] 
-    ranges = [(0, 1), (0, 1)] 
+    bounds = [(0, 1), (0, 1)]
+    ranges = [(0, 1), (0, 1)]
 
     run(F, bounds, ranges)
 
@@ -61,7 +61,7 @@ def ZDT1():
     )
     n = 3
     bounds = tuple(repeat((0, 1), n))
-    ranges = [(0, 1), (0, 1)] 
+    ranges = [(0, 1), (0, 1)]
 
     run(F, bounds, ranges)
 
@@ -73,7 +73,7 @@ def ZDT2():
     )
     n = 3
     bounds = tuple(repeat((0, 1), n))
-    ranges = [(0, 1), (0, 1)] 
+    ranges = [(0, 1), (0, 1)]
 
     run(F, bounds, ranges)
 
@@ -85,12 +85,13 @@ def ZDT3():
     )
     n = 30
     bounds = tuple(repeat((0, 1), n))
-    ranges = [(0, 1), (0, 1)] 
+    ranges = [(0, 1), (0, 1)]
 
     run(F, bounds, ranges)
 
 
 if __name__ == '__main__':
-    problem = sys.argv[1].upper()
-    impl = globals()[problem]
+    #problem = sys.argv[1].upper()
+    #impl = globals()[problem]
+    ZDT1()
 

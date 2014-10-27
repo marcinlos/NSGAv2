@@ -55,7 +55,7 @@ def dominates(a, b):
 
 
 def inverslyDominates(a, b):
-    """ Tests whether b dominates a inversly, or is equal to a, where a, b 
+    """ Tests whether b dominates a inversly, or is equal to a, where a, b
     are vectors with the same number of components.
     """
     ab = zip(a, b)
@@ -63,7 +63,7 @@ def inverslyDominates(a, b):
 
 
 def weaklyInverslyDominates(a, b):
-    """ Tests whether b dominates a inversly, or is equal to a, where a, b 
+    """ Tests whether b dominates a inversly, or is equal to a, where a, b
     are vectors with the same number of components.
     """
     ab = zip(a, b)
@@ -71,7 +71,7 @@ def weaklyInverslyDominates(a, b):
 
 
 def partialSort(xs, less):
-    """ Partitions set of points into classes wrt strong order given by 
+    """ Partitions set of points into classes wrt strong order given by
     comparator function 'less'.
 
     xs   - iterable collection
@@ -131,7 +131,7 @@ class Specimen(object):
 
     def __init__(self, x):
         self.x = tuple(x)
-        self.rank = None 
+        self.rank = None
         self.val = None
         self.crowd = None
 
@@ -155,7 +155,7 @@ class Specimen(object):
 
 def randomPopulation(size, bounds):
     """ Creates random initial population - set of points.
-    
+
     size   - number of points to create
     bounds - bounds for each dimension
     """
@@ -234,7 +234,7 @@ def oppositeVertex(x, p, xs):
 def spawns(x, z, v, p, xs):
     """
     x  - vertex
-    z  - 
+    z  -
     v  - opposite vertex
     p  - reference point
     xs - all the points
@@ -292,7 +292,7 @@ def mutation(a, p, bounds, max_changes):
             m, M = bounds[i]
             x = clamp(x + d, m, M)
         b.append(x)
-    return Specimen(b) 
+    return Specimen(b)
 
 
 def crossover(a, b):
@@ -327,7 +327,7 @@ def select(population, compare, N, p):
     """
     res = []
     for _ in xrange(N):
-        a, b = sample(population, 2) 
+        a, b = sample(population, 2)
         if compare(a, b):
             a, b = b, a
         # Here a >= b
@@ -351,7 +351,7 @@ class NSGA(object):
         self.ranges = ranges
         self.params = dict(NSGA.defparams, **params)
 
-        s = 0.1 
+        s = 0.1
         self.max_changes = [s * (M - m) for m, M in bounds]
 
 
@@ -431,7 +431,7 @@ class NSGA(object):
 
             P = Pnext
             Q = self.createOffspring(P, N)
-            
+
             if callback:
                 callback(step, P)
 
