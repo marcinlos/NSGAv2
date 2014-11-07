@@ -83,7 +83,7 @@ def ZDT3():
         lambda x: x[0],
         lambda x: 0.5 * (1 + g(x) * (1 - sqrt(x[0]/g(x)) - x[0]/g(x) * sin(10*pi*x[0])))
     )
-    n = 30
+    n = 3
     bounds = tuple(repeat((0, 1), n))
     ranges = [(0, 1), (0, 1)]
 
