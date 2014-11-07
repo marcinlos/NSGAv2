@@ -1,9 +1,7 @@
 
-from random import random, randint, sample, shuffle
-from collections import defaultdict
-from operator import itemgetter, attrgetter, mul
-from .utils import lerp, clamp, rand, tossCoin, randVector, maximal, \
-    dominates, inverslyDominates, weaklyInverslyDominates, partialSort
+from random import shuffle
+from operator import attrgetter
+from .utils import tossCoin, partialSort
 from .genetics import Specimen, randomPopulation, mutation, crossover, select
 from .hypervolume import hypervolume
 
