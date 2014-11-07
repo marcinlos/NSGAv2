@@ -361,15 +361,20 @@ class NSGA(object):
         shuffle(Q)
 
         cp = self.params['crossover_prob']
-        max_pairs = int(cp * N/2)
-        pairs = randint(0, max_pairs)
+        # max_pairs = int(cp * N/2)
+        # pairs = randint(0, max_pairs)
+        crossed = 0
 
-        for i in xrange(pairs):
-            a = Q[2 * i]
-            b = Q[2 * i + 1]
-            ab, ba = crossover(a, b)
-            Q[2 * i] = ab
-            Q[2 * i + 1] = ba
+        for i in xrange(N/2):
+            if tossCoin(cp):
+                a = Q[2 * i]
+                b = Q[2 * i + 1]
+                ab, ba = crossover(a, b)
+                Q[2 * i] = ab
+                Q[2 * i + 1] = ba
+                crossed += 1
+
+        print 'Crossover for {} pairs'.format(crossed)
 
         mp = self.params['mutation_prob']
         return [mutation(a, mp, self.bounds, self.max_changes) for a in Q]
