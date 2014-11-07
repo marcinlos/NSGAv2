@@ -339,7 +339,7 @@ def select(population, compare, N, p):
 class NSGA(object):
 
     defparams = {
-        'mutation_prob': 0.2,
+        'mutation_prob': 0.08,
         'crossover_prob': 0.7,
         'population_size': 300,
         'selection_pressure': 1.0,
