@@ -91,7 +91,7 @@ def ZDT3():
 
 
 if __name__ == '__main__':
-    #problem = sys.argv[1].upper()
-    #impl = globals()[problem]
-    ZDT1()
+    problem = sys.argv[1].upper()
+    impl = globals()[problem]
+    impl()
 
