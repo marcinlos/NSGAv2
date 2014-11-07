@@ -7,7 +7,7 @@ from subprocess import Popen, PIPE
 
 text = '''
     set title "%(title)s" font "Times-New-Roman,24"
-    set terminal pngcairo size 900,900 font "Helvetica,14" 
+    set terminal pngcairo size 900,900 font "Helvetica,14"
     set output "%(output)s"
     set xrange [%(xrange)s]
     set yrange [%(yrange)s]
