@@ -3,6 +3,7 @@
 import IntOb.NSGAv2 as nsga
 from itertools import repeat
 from math import sqrt, sin, pi
+from IntOb.hypervolume import hypervolume
 import sys
 
 
@@ -16,7 +17,7 @@ def makeCallback(F, ranges, volume):
 
         if step % 10 == 0:
             vals = [guy.val for guy in P]
-            vol = nsga.hypervolume(refpoint, vals)
+            vol = hypervolume(refpoint, vals)
 
             if volume:
                 print 'HVR = {:.2%}'.format(vol / volume)

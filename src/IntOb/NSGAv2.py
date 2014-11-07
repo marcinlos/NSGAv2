@@ -3,7 +3,6 @@ from random import shuffle
 from operator import attrgetter
 from .utils import tossCoin, partialSort
 from .genetics import Specimen, randomPopulation, mutation, crossover, select
-from .hypervolume import hypervolume
 
 
 def crowdedCmp(a, b):
