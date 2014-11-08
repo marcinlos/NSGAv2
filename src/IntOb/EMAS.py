@@ -33,9 +33,10 @@ class Agent(object):
 
 class Island(object):
 
-    def __init__(self):
+    def __init__(self, energy):
         self.neighbours = []
         self.inhabitants = set()
+        self.energy = energy
 
     def add_neighbour(self, island):
         self.neighbours.append(island)
