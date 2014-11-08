@@ -38,8 +38,16 @@ class Agent(object):
 
     # Simple, direct actions
 
+    def transfer_energy(self, other, e):
+        self.energy -= e
+        other.energy += e
+
+    def dissipate_energy(self, e):
+        self.energy -= e
+        self.env.accept_energy(e)
+
     def fight(self, enemy):
-        best = self.winner(self, enemy)
+        best = self.env.winner(self, enemy)
         if self is best:
             gain = self.env.energy_to_transfer(self, enemy)
             self.energy += gain
@@ -51,7 +59,6 @@ class Agent(object):
         self.env.travel(self, where)
 
     # Methods determining behaviour of agent (strategy, actions)
-
 
     def act(self):
         """ Invoked once during every step of lifecycle. Here, agent is free to
@@ -79,10 +86,7 @@ class Agent(object):
         """
         pass
 
-    def reproduce(self):
-        pass
-
-    def travel(self):
+    def reproduce(self, ):
         pass
 
     def die(self):
@@ -116,7 +120,6 @@ class Env(object):
         self.island = island
 
     def find_encounters(self):
-        # return sample(self.island.inhabitants, 1)
         return self.island.inhabitants
 
     def find_mates(self):
@@ -127,6 +130,9 @@ class Env(object):
 
     def energy_to_transfer(self, winner, loser):
         return 0.2
+
+    def accept_energy(self, energy):
+        self.island.energy += energy
 
     def winner(self, a, b):
         if dominates(b.val, a.val):
