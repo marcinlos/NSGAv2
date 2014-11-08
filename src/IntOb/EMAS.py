@@ -30,6 +30,14 @@ class Agent(object):
         else:
             self.act()
 
+    def attack(self, enemy):
+        self.fight(enemy)
+
+    def attacked(self, enemy):
+        self.fight(enemy)
+
+    # Simple, direct actions
+
     def fight(self, enemy):
         best = self.winner(self, enemy)
         if self is best:
@@ -39,19 +47,8 @@ class Agent(object):
             loss = self.env.energy_to_transfer(enemy, self)
             self.energy -= loss
 
-    def attack(self, enemy):
-        self.fight(enemy)
-
-    def attacked(self, enemy):
-        self.fight(enemy)
-
-    def winner(self, other):
-        if dominates(other.val, self.val):
-            return other
-        elif dominates(self.val, other.val):
-            return self
-        else:
-            return None
+    def travel(self, where):
+        self.env.travel(self, where)
 
     # Methods determining behaviour of agent (strategy, actions)
 
@@ -130,6 +127,14 @@ class Env(object):
 
     def energy_to_transfer(self, winner, loser):
         return 0.2
+
+    def winner(self, a, b):
+        if dominates(b.val, a.val):
+            return a
+        elif dominates(a.val, b.val):
+            return b
+        else:
+            return None
 
     def travel(self, agent, destination):
         e = self.travel_threshold
