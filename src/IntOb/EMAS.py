@@ -30,6 +30,21 @@ class Agent(object):
         else:
             self.act()
 
+    def fight(self, enemy):
+        best = self.winner(self, enemy)
+        if self is best:
+            gain = self.env.energy_to_transfer(self, enemy)
+            self.energy += gain
+        elif enemy is best:
+            loss = self.env.energy_to_transfer(enemy, self)
+            self.energy -= loss
+
+    def attack(self, enemy):
+        self.fight(enemy)
+
+    def attacked(self, enemy):
+        self.fight(enemy)
+
     def winner(self, other):
         if dominates(other.val, self.val):
             return other
@@ -73,13 +88,6 @@ class Agent(object):
     def travel(self):
         pass
 
-    def fight(self, enemy):
-        best = winner(self, enemy)
-        if self is best:
-            pass
-        elif enemy is best:
-            pass
-
     def die(self):
         """ Invoked when the agent has died, i.e. when his life energy has
         fallen below the death threshold.
@@ -120,6 +128,8 @@ class Env(object):
     def neighbour_islands(self):
         return self.island.neighbours
 
+    def energy_to_transfer(self, winner, loser):
+        return 0.2
 
     def travel(self, agent, destination):
         e = self.travel_threshold
