@@ -74,6 +74,9 @@ class EMAS(object):
         'world_size' : 5,
         'population_size': 10,
         'init_energy': 0.5,
+        'travel_threshold': 0.7,
+        'reproduction_threshold': 0.7,
+        'death_threshold': 0.2,
     }
 
     def __init__(self, fs, bounds, ranges, **params):
