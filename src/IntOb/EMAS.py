@@ -4,6 +4,13 @@ from .genetics import Specimen
 from random import sample
 
 
+names = {
+    'Adam', 'Bartek', 'Ania', 'Pawel', 'Kasia', 'Andrzej', 'Alicja',
+    'Michal', 'Zbigniew', 'Mateusz', 'Marcin', 'Filip', 'Felicja',
+    'Tomek', 'Piotr', 'Paulina', 'Dariusz'
+}
+
+
 
 class Agent(object):
 
@@ -31,9 +38,11 @@ class Agent(object):
             self.act()
 
     def attack(self, enemy):
+        print '{} attacks {}'.format(self, enemy)
         self.fight(enemy)
 
     def attacked(self, enemy):
+        print '{} has been attacked by {}'.format(self, enemy)
         self.fight(enemy)
 
     # Simple, direct actions
@@ -64,7 +73,17 @@ class Agent(object):
         """ Invoked once during every step of lifecycle. Here, agent is free to
         undertake whatever action he feels appropriate.
         """
-        pass
+        print '{} begins his life step'.format(self)
+
+        enemies = self.env.find_encounters()
+        for enemy in enemies:
+            if enemy.meet_offer():
+                self.attack(enemy)
+                break
+        else:
+            print 'Noone wanted to fight :('
+
+        print '{} has finished life step'.format(self)
 
     def meet_offer(self, other):
         """ Invoked when some other agent wishes to meet with this one.
@@ -74,7 +93,7 @@ class Agent(object):
         Returns:
             True - offer accepted, False - rejected
         """
-        pass
+        return True
 
     def reproduction_offer(self, mate):
         """ Invoked when some other agent wishes to reproduce.
@@ -93,7 +112,7 @@ class Agent(object):
         """ Invoked when the agent has died, i.e. when his life energy has
         fallen below the death threshold.
         """
-        pass
+        print '{} has died'.format(self)
 
 
 class Island(object):
@@ -164,6 +183,9 @@ class Env(object):
     def death_threshold(self):
         return self.params['reproduction_threshold']
 
+    def __str__(self):
+        return '{}#{}'.format(self.name, hash(self))
+
 
 class EMAS(object):
     params = {
@@ -180,6 +202,7 @@ class EMAS(object):
         self.bounds = bounds
         self.ranges = ranges
         self.params = dict(EMAS.params, **params)
+        s = 0.1
         self.max_changes = [s * (M - m) for m, M in bounds]
         self.world = []
 
@@ -207,6 +230,8 @@ class EMAS(object):
                 val = self.f(x)
                 agent = Agent(x, val, energy, env)
                 island.add_agent(agent)
+                name = sample(names, 1)[0]
+                agent.name = name
 
     def agents(self):
         for island in self.world:
