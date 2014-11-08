@@ -13,10 +13,10 @@ class Agent(object):
         self.val = val
 
     def can_travel(self):
-        return self.energy >= self.env.travel_treshold
+        return self.energy >= self.env.travel_threshold
 
     def can_reproduce(self):
-        return self.energy >= self.env.reproduction_treshold
+        return self.energy >= self.env.reproduction_threshold
 
     def act():
         pass
@@ -60,12 +60,12 @@ class Env(object):
         return self.island.neighbours
 
     @property
-    def travel_treshold(self):
-        return self.params['travel_treshold']
+    def reproduction_threshold(self):
+        return self.params['reproduction_threshold']
 
     @property
-    def reproduction_treshold(self):
-        return self.params['reproduction_treshold']
+    def death_threshold(self):
+        return self.params['reproduction_threshold']
 
 
 class EMAS(object):
@@ -95,7 +95,7 @@ class EMAS(object):
                     a.add_neighbour(b)
 
     def populate_world(self):
-        """ Fills the islands with population_size randomly choosen individuals.
+        """ Fills the islands with population_size randomly chosen individuals.
         """
         N = self.params['population_size']
         energy = self.params['init_energy']
