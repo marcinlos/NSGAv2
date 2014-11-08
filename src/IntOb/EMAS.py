@@ -1,14 +1,15 @@
 
-from .utils import dominates
-from .genetics import Specimen
-from random import sample
+from itertools import ifilter
+from .utils import dominates, randVector
+from .genetics import Specimen, mutation, crossover
+from random import choice
 
 
-names = {
+names = [
     'Adam', 'Bartek', 'Ania', 'Pawel', 'Kasia', 'Andrzej', 'Alicja',
     'Michal', 'Zbigniew', 'Mateusz', 'Marcin', 'Filip', 'Felicja',
     'Tomek', 'Piotr', 'Paulina', 'Dariusz'
-}
+]
 
 
 
@@ -40,6 +41,7 @@ class Agent(object):
     def attack(self, enemy):
         print '{} attacks {}'.format(self, enemy)
         self.fight(enemy)
+        enemy.attacked(self)
 
     def attacked(self, enemy):
         print '{} has been attacked by {}'.format(self, enemy)
@@ -58,11 +60,13 @@ class Agent(object):
     def fight(self, enemy):
         best = self.env.winner(self, enemy)
         if self is best:
-            gain = self.env.energy_to_transfer(self, enemy)
+            gain = self.env.fight_transfer
             self.energy += gain
+            print '{} won, gained {} energy, now {}'.format(self, gain, self.energy)
         elif enemy is best:
-            loss = self.env.energy_to_transfer(enemy, self)
+            loss = self.env.fight_transfer
             self.energy -= loss
+            print '{} lost, lost {} energy, now {}'.format(self, loss, self.energy)
 
     def travel(self, where):
         self.env.travel(self, where)
@@ -75,15 +79,24 @@ class Agent(object):
         """
         print '{} begins his life step'.format(self)
 
-        enemies = self.env.find_encounters()
-        for enemy in enemies:
-            if enemy.meet_offer():
-                self.attack(enemy)
-                break
+        for mate in self.env.find_mates(self):
+            if mate.reproduction_offer(self):
+                self.reproduce(mate)
         else:
-            print 'Noone wanted to fight :('
+            print 'Noone to mate with :/'
+
+            enemies = self.env.find_encounters(self)
+            if enemies:
+                while True:
+                    enemy = choice(enemies)
+                    if enemy.meet_offer(self):
+                        self.attack(enemy)
+                        break
+            else:
+                print 'Noone left to fight'
 
         print '{} has finished life step'.format(self)
+        print '---'
 
     def meet_offer(self, other):
         """ Invoked when some other agent wishes to meet with this one.
@@ -98,21 +111,25 @@ class Agent(object):
     def reproduction_offer(self, mate):
         """ Invoked when some other agent wishes to reproduce.
 
-        other - agent that makes the offer
+        mate - agent that makes the offer
 
         Returns:
             True - offer accepted, False - rejected
         """
-        pass
+        return True
 
-    def reproduce(self, ):
-        pass
+    def reproduce(self, partner):
+        print '{} mates with {}'.format(self, partner)
+        self.env.reproduce(self, partner)
 
     def die(self):
         """ Invoked when the agent has died, i.e. when his life energy has
         fallen below the death threshold.
         """
         print '{} has died'.format(self)
+
+    def __str__(self):
+        return '{}#{}'.format(self.name, hash(self))
 
 
 class Island(object):
@@ -125,33 +142,61 @@ class Island(object):
     def add_neighbour(self, island):
         self.neighbours.append(island)
 
-    def add_agent(a):
+    def add_agent(self, a):
         self.inhabitants.add(a)
 
-    def remove_agent(a):
+    def remove_agent(self, a):
         self.inhabitants.remove(a)
 
 
 class Env(object):
 
-    def __init__(self, params, island):
-        self.params = params
+    def __init__(self, island, emas):
         self.island = island
+        self.emas = emas
 
-    def find_encounters(self):
-        return self.island.inhabitants
+    def find_encounters(self, agent):
+        enemies = list(self.island.inhabitants)
+        enemies.remove(agent)
+        return enemies
 
-    def find_mates(self):
-        pass
+    def find_mates(self, agent):
+        mates = []
+        for a in self.island.inhabitants:
+            if a is not agent and a.can_reproduce():
+                mates.append(a)
+        return mates
 
     def neighbour_islands(self):
         return self.island.neighbours
 
-    def energy_to_transfer(self, winner, loser):
-        return 0.2
-
     def accept_energy(self, energy):
         self.island.energy += energy
+
+    def reproduce(self, p1, p2):
+        c1, c2 = crossover(p1, p2)
+
+        c1 = self.mutate(c1)
+        c2 = self.mutate(c2)
+
+        v1 = self.emas.f(c1.x)
+        v2 = self.emas.f(c2.x)
+
+        e = self.emas.params['init_energy']
+        p1.energy -= e
+        p2.energy -= e
+
+        a1 = Agent(c1.x, v1, e, self)
+        a2 = Agent(c2.x, v2, e, self)
+        a1.name = choice(names)
+        a2.name = choice(names)
+
+        self.island.add_agent(a1)
+        self.island.add_agent(a2)
+
+    def mutate(self, a):
+        p = self.emas.params['mutation_probability']
+        return mutation(a, p, self.emas.bounds, self.emas.max_changes)
 
     def winner(self, a, b):
         if dominates(b.val, a.val):
@@ -169,32 +214,35 @@ class Env(object):
         destination.add_agent(agent)
 
     def died(self, agent):
-        pass
+        self.island.remove_agent(agent)
+
+    @property
+    def fight_transfer(self):
+        return self.emas.params['fight_transfer']
 
     @property
     def travel_threshold(self):
-        return self.params['travel_threshold']
+        return self.emas.params['travel_threshold']
 
     @property
     def reproduction_threshold(self):
-        return self.params['reproduction_threshold']
+        return self.emas.params['reproduction_threshold']
 
     @property
     def death_threshold(self):
-        return self.params['reproduction_threshold']
-
-    def __str__(self):
-        return '{}#{}'.format(self.name, hash(self))
+        return self.emas.params['death_threshold']
 
 
 class EMAS(object):
     params = {
-        'world_size' : 5,
-        'population_size': 10,
+        'world_size' : 2,
+        'population_size': 5,
         'init_energy': 0.5,
+        'fight_transfer': 0.2,
         'travel_threshold': 0.7,
         'reproduction_threshold': 0.7,
         'death_threshold': 0.2,
+        'mutation_probability': 0.05,
     }
 
     def __init__(self, fs, bounds, ranges, **params):
@@ -210,7 +258,7 @@ class EMAS(object):
         """ Creates fully connected island graph.
         """
         size = self.params['world_size']
-        self.world = [Island() for _ in xrange(size)]
+        self.world = [Island(0) for _ in xrange(size)]
 
         for a in self.world:
             for b in self.world:
@@ -224,25 +272,27 @@ class EMAS(object):
         energy = self.params['init_energy']
 
         for island in self.world:
-            env = Env(self.params, island)
+            env = Env(island, self)
             for _ in xrange(N):
                 x = randVector(self.bounds)
                 val = self.f(x)
                 agent = Agent(x, val, energy, env)
                 island.add_agent(agent)
-                name = sample(names, 1)[0]
-                agent.name = name
+                agent.name = choice(names)
 
     def agents(self):
+        agents = []
         for island in self.world:
             for agent in island.inhabitants:
-                yield agent
+                agents.append(agent)
+        return agents
 
     def optimize(self, steps, callback=None):
         self.create_world()
         self.populate_world()
 
         for step in xrange(steps):
+            print '- - - - - - - - - - - - - - - - - - - - - - - - - - -'
             for agent in self.agents():
                 agent.step()
 
