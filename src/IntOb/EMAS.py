@@ -1,4 +1,5 @@
 
+from .utils import dominates
 from .genetics import Specimen
 from random import sample
 
@@ -18,16 +19,71 @@ class Agent(object):
     def can_reproduce(self):
         return self.energy >= self.env.reproduction_threshold
 
-    def act():
+    def must_die(self):
+        return self.energy < self.env.death_threshold
+
+    def step(self):
+        """ One full step of agent's lifecycle """
+        if self.must_die():
+            self.die()
+            self.env.died(self)
+        else:
+            self.act()
+
+    def winner(self, other):
+        if dominates(other.val, self.val):
+            return other
+        elif dominates(self.val, other.val):
+            return self
+        else:
+            return None
+
+    # Methods determining behaviour of agent (strategy, actions)
+
+
+    def act(self):
+        """ Invoked once during every step of lifecycle. Here, agent is free to
+        undertake whatever action he feels appropriate.
+        """
         pass
 
-    def reproduce():
+    def meet_offer(self, other):
+        """ Invoked when some other agent wishes to meet with this one.
+
+        other - agent that makes the offer
+
+        Returns:
+            True - offer accepted, False - rejected
+        """
         pass
 
-    def travel():
+    def reproduction_offer(self, mate):
+        """ Invoked when some other agent wishes to reproduce.
+
+        other - agent that makes the offer
+
+        Returns:
+            True - offer accepted, False - rejected
+        """
         pass
 
-    def fight():
+    def reproduce(self):
+        pass
+
+    def travel(self):
+        pass
+
+    def fight(self, enemy):
+        best = winner(self, enemy)
+        if self is best:
+            pass
+        elif enemy is best:
+            pass
+
+    def die(self):
+        """ Invoked when the agent has died, i.e. when his life energy has
+        fallen below the death threshold.
+        """
         pass
 
 
@@ -54,11 +110,22 @@ class Env(object):
         self.params = params
         self.island = island
 
-    def pick_encounter(self):
-        return sample(self.island.inhabitants)[0]
+    def find_encounters(self):
+        # return sample(self.island.inhabitants, 1)
+        return self.island.inhabitants
+
+    def find_mates(self):
+        pass
 
     def neighbour_islands(self):
         return self.island.neighbours
+
+    def died(self, agent):
+        pass
+
+    @property
+    def travel_threshold(self):
+        return self.params['travel_threshold']
 
     @property
     def reproduction_threshold(self):
