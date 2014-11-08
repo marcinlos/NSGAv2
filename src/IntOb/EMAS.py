@@ -108,8 +108,16 @@ class EMAS(object):
                 agent = Agent(x, val, energy, env)
                 island.add_agent(agent)
 
+    def agents(self):
+        for island in self.world:
+            for agent in island.inhabitants:
+                yield agent
+
     def optimize(self, steps, callback=None):
         self.create_world()
         self.populate_world()
 
+        for step in xrange(steps):
+            for agent in self.agents():
+                agent.step()
 
