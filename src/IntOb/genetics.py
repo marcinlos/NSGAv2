@@ -9,9 +9,7 @@ class Specimen(object):
 
     def __init__(self, x):
         self.x = tuple(x)
-        self.rank = None
         self.val = None
-        self.crowd = None
 
     def __str__(self):
         return '|{}|'.format(self.x)
@@ -38,14 +36,14 @@ def randomPopulation(size, bounds):
 
 def mutation(a, p, bounds, max_changes):
     """ Mutates each component of the vector with probability p, changing it
-    by random amount, uniformly choosen from the symmetric intervals specified
+    by random amount, uniformly chosen from the symmetric intervals specified
     by max_changes vector, ensuring the result stays inside the region given
     by bounds.
 
     a           - vector to mutate
     p           - probability of mutation
     bounds      - solution domain
-    max_changes - maximal acceptable changes due to mutation for each somponent
+    max_changes - maximal acceptable changes due to mutation for each component
 
     Returns: new, modified specimen
     """
@@ -80,7 +78,7 @@ def crossover(a, b):
 
 def select(population, compare, N, p):
     """ Performs selection of N individuals from the population, using binary
-    tournament scheme with pressure p. Concretly, pair of individuals is
+    tournament scheme with pressure p. Concretely, pair of individuals is
     drawn randomly from the population, they are compared with specified
     comparator and with probability p the winner is selected.
 
