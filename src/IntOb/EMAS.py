@@ -120,6 +120,14 @@ class Env(object):
     def neighbour_islands(self):
         return self.island.neighbours
 
+
+    def travel(self, agent, destination):
+        e = self.travel_threshold
+        agent.energy -= e
+        self.island.energy += e
+        self.island.remove_agent(agent)
+        destination.add_agent(agent)
+
     def died(self, agent):
         pass
 
