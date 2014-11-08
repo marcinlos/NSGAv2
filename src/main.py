@@ -64,7 +64,7 @@ def ZDT1():
     bounds = tuple(repeat((0, 1), n))
     ranges = [(0, 1), (0, 1)]
 
-    run(F, bounds, ranges)
+    return (F, bounds, ranges)
 
 
 def ZDT2():
@@ -76,7 +76,7 @@ def ZDT2():
     bounds = tuple(repeat((0, 1), n))
     ranges = [(0, 1), (0, 1)]
 
-    run(F, bounds, ranges)
+    return (F, bounds, ranges)
 
 
 def ZDT3():
@@ -88,11 +88,12 @@ def ZDT3():
     bounds = tuple(repeat((0, 1), n))
     ranges = [(0, 1), (0, 1)]
 
-    run(F, bounds, ranges)
+    return (F, bounds, ranges)
 
 
 if __name__ == '__main__':
     problem = sys.argv[1].upper()
     impl = globals()[problem]
-    impl()
+    F, bounds, ranges = impl()
+    run(F, bounds, ranges)
 
