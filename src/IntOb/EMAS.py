@@ -38,6 +38,14 @@ class Agent(object):
         else:
             self.act()
 
+    def transfer_energy(self, other, amount):
+        self.energy -= amount
+        other.energy += amount
+
+    def dissipate_energy(self, amount):
+        self.energy -= amount
+        self.env.accept_energy(amount)
+
     def attack(self, enemy):
         self.combat(enemy)
         enemy.attacked(self)
@@ -47,14 +55,9 @@ class Agent(object):
 
     def combat(self, enemy):
         best = self.env.winner(self, enemy)
-        if self is best:
-            gain = self.env.fight_transfer
-            self.energy += gain
-            enemy.energy -= gain
-        elif enemy is best:
-            loss = self.env.fight_transfer
-            self.energy -= loss
-            enemy.energy += loss
+        if enemy is best:
+            loss = min(self.env.fight_transfer, self.energy)
+            self.transfer_energy(enemy, loss)
 
     def __str__(self):
         return '{}#{}'.format(self.name, hash(self))
@@ -189,12 +192,13 @@ class Env(object):
         v1 = self.emas.f(c1.x)
         v2 = self.emas.f(c2.x)
 
-        e = self.emas.params['init_energy']
-        p1.energy -= e
-        p2.energy -= e
+        a1 = Agent(c1.x, v1, 0, self)
+        a2 = Agent(c2.x, v2, 0, self)
 
-        a1 = Agent(c1.x, v1, e, self)
-        a2 = Agent(c2.x, v2, e, self)
+        e = self.emas.params['init_energy']
+        p1.transfer_energy(a1, e)
+        p2.transfer_energy(a2, e)
+
         a1.name = choice(names)
         a2.name = choice(names)
 
@@ -215,8 +219,7 @@ class Env(object):
 
     def travel(self, agent, destination):
         e = self.island.neighbours[destination]
-        agent.energy -= e
-        self.island.energy += e
+        agent.dissipate_energy(e)
         self.island.remove_agent(agent)
         destination.add_agent(agent)
         agent.env = self.emas.envs[destination]
@@ -249,7 +252,7 @@ class EMAS(object):
         'fight_transfer': 0.2,
         'travel_threshold': 0.7,
         'travel_cost': 0.2,
-        'reproduction_threshold': 0.7,
+        'reproduction_threshold': 0.8,
         'death_threshold': 0.1,
         'mutation_probability': 0.05,
     }
