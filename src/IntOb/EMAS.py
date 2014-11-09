@@ -225,6 +225,7 @@ class Env(object):
         agent.env = self.emas.envs[destination]
 
     def died(self, agent):
+        agent.dissipate_energy(agent.energy)
         self.island.remove_agent(agent)
 
     @property
