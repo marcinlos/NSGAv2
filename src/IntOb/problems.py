@@ -37,5 +37,5 @@ def ZDT3():
     )
     n = 3
     bounds = tuple(repeat((0, 1), n))
-    ranges = [(0, 1), (0, 1)]
+    ranges = [(0, 1), (0, 10)]
     return (F, bounds, ranges, None)

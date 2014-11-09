@@ -1,6 +1,7 @@
 
 from random import random
 from collections import defaultdict
+from math import sqrt
 
 
 def lerp(a, b, t):
@@ -41,6 +42,11 @@ def randVector(bounds):
              values of each component
     """
     return tuple(rand(a, b) for (a, b) in bounds)
+
+
+def distance(u, v):
+    """ Calculates euclidean distance between vectors u and v """
+    return sqrt(sum((x - y)**2 for x, y in zip(u, v)))
 
 
 def dominates(a, b):

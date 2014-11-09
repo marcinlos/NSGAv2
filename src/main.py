@@ -37,9 +37,9 @@ class Callback(object):
             self.dump_to_file(step, guys)
 
     def step_emas(self, step, guys):
-        print 'step {}'.format(step)
 
         if step % self.gap == 0:
+            print 'step {}'.format(step)
             total_energy = 0
             for agent in guys:
                 total_energy += agent.energy

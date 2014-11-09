@@ -1,5 +1,7 @@
 
 from random import choice, shuffle
+from operator import attrgetter
+from ..utils import distance
 
 
 class Agent(object):
@@ -9,6 +11,9 @@ class Agent(object):
         self.x = x
         self.energy = energy
         self.val = val
+
+        self.encounter_count = 0
+        self.dist = 0
 
     def can_travel(self):
         return self.energy >= self.env.travel_threshold
@@ -47,6 +52,12 @@ class Agent(object):
         if enemy is best:
             loss = min(self.env.fight_transfer, self.energy)
             self.transfer_energy(enemy, loss)
+        self.encounter_count += 1
+        self.dist += distance(self.val, enemy.val)
+
+    @property
+    def spread(self):
+        return self.dist / (self.encounter_count + 1)
 
     def __str__(self):
         return '{}#{}'.format(self.name, hash(self))
@@ -86,7 +97,9 @@ class Agent(object):
 
     def reproduce(self):
         mates = self.env.find_mates(self)
-        shuffle(mates)
+        #shuffle(mates)
+        mates.sort(key=attrgetter('spread'))
+        mates.reverse()
 
         for mate in mates:
             if mate.reproduction_offer(self):

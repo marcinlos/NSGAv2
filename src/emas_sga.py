@@ -18,8 +18,8 @@ from random import random, randint, uniform as rand_uniform
 problem = ZDT2
 steps = 100
 
-# Find negative element
-def eval_func(genome):
+
+def eval_func(genome, steps=100):
     print 'eval'
     F, bounds, ranges, volume = problem()
     refpoint = tuple(r[1] for r in ranges)
@@ -30,7 +30,7 @@ def eval_func(genome):
     vals = [guy.val for guy in guys]
     V = hypervolume(refpoint, vals)
     hvr = V / volume
-    return hvr ** 4
+    return 100 * hvr
 
 params = {
     'world_size' : 2,
@@ -97,7 +97,7 @@ def initializer(genome, **kwargs):
     params = {
         'world_size' : randint(1, 5),
         'population_size': randint(20, 100),
-        'init_energy': rand_uniform(0, 1),
+        'init_energy': rand_uniform(0.2, 1),
         'fight_transfer': rand_uniform(0, 1),
         'travel_threshold': rand_uniform(0, 1),
         'travel_cost': rand_uniform(0, 1),
@@ -144,13 +144,16 @@ def run_main():
     ga = GSimpleGA.GSimpleGA(genome)
     ga.setMinimax(Consts.minimaxType['maximize'])
     ga.selector.set(Selectors.GRouletteWheel)
-    ga.setGenerations(2)
+    ga.setGenerations(10)
     ga.setPopulationSize(15)
 
     ga.evolve(freq_stats=1)
 
     # Best individual
-    print ga.bestIndividual()
+    best = ga.bestIndividual()
+    print best
+    print eval_func(best, steps=1000)
+
 
 if __name__ == "__main__":
     run_main()
