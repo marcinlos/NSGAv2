@@ -11,12 +11,14 @@ from IntOb.problems import *
 import sys
 
 
-conf = [{
-    'rows': 1, 'cols': 1,
-    'plots': [SolutionPlot]
-}, {
-    'rows': 3, 'cols': 1,
-    'plots': [EnergyPlot, EnergyPerIslandPlot, PopulationPlot]
+conf = [
+# {
+#     'rows': 1, 'cols': 1,
+#     'plots': [SolutionPlot]
+# },
+{
+    'rows': 2, 'cols': 2,
+    'plots': [EnergyPlot, EnergyPerIslandPlot, PopulationPlot, HVRPlot]
 }]
 
 
@@ -47,11 +49,11 @@ if __name__ == '__main__':
         sys.exit(1)
 
     problem_def = globals()[problem]
-    F, bounds, ranges = problem_def()
+    F, bounds, ranges, volume = problem_def()
     refpoint = (1., 1.)
 
     alg = EMAS(F, bounds, ranges)
-    data = Stats(alg)
+    data = Stats(alg, volume)
 
     app = QtGui.QApplication(sys.argv)
     windows = create_windows(conf)
