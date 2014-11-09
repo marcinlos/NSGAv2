@@ -1,54 +1,81 @@
 #! /usr/bin/env python
 
-import IntOb.NSGAv2 as nsga
+from IntOb.NSGAv2 import NSGA
 from IntOb.EMAS import EMAS, Stats
 from IntOb.hypervolume import hypervolume
 from IntOb.problems import *
 import sys
 
+class Callback(object):
 
-def makeCallback(F, ranges, volume):
-    f, g = F
-    refpoint = tuple(r[1] for r in ranges)
+    def __init__(self, ranges, volume):
+        self.ranes = ranges
+        self.refpoint = tuple(r[1] for r in ranges)
+        self.volume = volume
+        self.gap = 10
 
-    def onStep(step, P):
-        total_energy = 0
-        for agent in P:
-            total_energy += agent.energy
+    def dump_to_file(self, step, guys):
+        with open('step_{:04}.dat'.format(step), 'w') as out:
+            for guy in guys:
+                x, y = guy.val
+                line = '{:20} {:20}\n'.format(x, y)
+                out.write(line)
 
-        print 'step {}, population: {}, energy: {}'.format(step, len(P), total_energy)
+    def print_hypervolume(self, guys):
+        vals = [guy.val for guy in guys]
+        V = hypervolume(self.refpoint, vals)
 
-        if step % 10 == 0:
-            vals = [guy.val for guy in P]
-            vol = hypervolume(refpoint, vals)
+        if self.volume:
+            print 'HVR = {:.2%}'.format(V / volume)
+        else:
+            print 'HV = {}'.format(V)
 
-            if volume:
-                print 'HVR = {:.2%}'.format(vol / volume)
-            else:
-                print 'HV = {}'.format(vol)
+    def step_nsga(self, step, guys):
+        print 'step {}'.format(step)
+        if step % self.gap == 0:
+            self.print_hypervolume(guys)
+            self.dump_to_file(step, guys)
 
-            with open('step_{:04}.dat'.format(step), 'w') as out:
-                for guy in P:
-                    x, y = guy.val
-                    line = '{:20} {:20}\n'.format(x, y)
-                    out.write(line)
+    def step_emas(self, step, guys):
+        print 'step {}'.format(step)
 
-    return onStep
+        if step % self.gap == 0:
+            total_energy = 0
+            for agent in guys:
+                total_energy += agent.energy
+
+            print 'population: {}'.format(len(guys))
+            print 'energy: {}'.format(total_energy)
+            self.print_hypervolume(guys)
+            self.dump_to_file(step, guys)
+
+    def for_method(self, method):
+        return {
+            NSGA: self.step_nsga,
+            EMAS: self.step_emas,
+        }[method]
 
 
-steps = int(sys.argv[2])
 
 
-def run(F, bounds, ranges, method, volume=None):
+def run(F, bounds, ranges, method, volume):
     alg = method(F, bounds, ranges)
-    return alg.optimize(steps, makeCallback(F, ranges, volume))
-
+    cb = Callback(ranges, volume)
+    return alg.optimize(steps, cb.for_method(method))
 
 
 if __name__ == '__main__':
-    problem = sys.argv[1].upper()
-    impl = globals()[problem]
-    F, bounds, ranges = impl()
-    #run(F, bounds, ranges, method=nsga.NSGA)
-    run(F, bounds, ranges, method=EMAS)
+    if len(sys.argv) < 4:
+        print 'Usage: ./gui.py <method> <problem> <steps>'
+        sys.exit(1)
+
+    method_name = sys.argv[1].upper()
+    problem_name = sys.argv[2].upper()
+    steps = int(sys.argv[3])
+
+    problem = globals()[problem_name]
+    method = globals()[method_name]
+
+    F, bounds, ranges, volume = problem()
+    run(F, bounds, ranges, method, volume)
 
