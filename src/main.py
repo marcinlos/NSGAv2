@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 
 import IntOb.NSGAv2 as nsga
-import IntOb.EMAS as emas
+from IntOb.EMAS import EMAS, Stats
 from IntOb.hypervolume import hypervolume
 from IntOb.problems import *
 import sys
@@ -50,5 +50,5 @@ if __name__ == '__main__':
     impl = globals()[problem]
     F, bounds, ranges = impl()
     #run(F, bounds, ranges, method=nsga.NSGA)
-    run(F, bounds, ranges, method=emas.EMAS)
+    run(F, bounds, ranges, method=EMAS)
 
