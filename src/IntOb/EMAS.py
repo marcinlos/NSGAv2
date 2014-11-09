@@ -40,12 +40,12 @@ class Agent(object):
 
     def attack(self, enemy):
         print '{} attacks {}'.format(self, enemy)
-        self.fight(enemy)
+        self.combat(enemy)
         enemy.attacked(self)
 
     def attacked(self, enemy):
         print '{} has been attacked by {}'.format(self, enemy)
-        self.fight(enemy)
+        self.combat(enemy)
 
     # Simple, direct actions
 
@@ -57,7 +57,7 @@ class Agent(object):
         self.energy -= e
         self.env.accept_energy(e)
 
-    def fight(self, enemy):
+    def combat(self, enemy):
         best = self.env.winner(self, enemy)
         if self is best:
             gain = self.env.fight_transfer
@@ -68,8 +68,8 @@ class Agent(object):
             self.energy -= loss
             print '{} lost, lost {} energy, now {}'.format(self, loss, self.energy)
 
-    def travel(self, where):
-        self.env.travel(self, where)
+    def __str__(self):
+        return '{}#{}'.format(self.name, hash(self))
 
     # Methods determining behaviour of agent (strategy, actions)
 
@@ -79,21 +79,8 @@ class Agent(object):
         """
         print '{} begins his life step'.format(self)
 
-        for mate in self.env.find_mates(self):
-            if mate.reproduction_offer(self):
-                self.reproduce(mate)
-        else:
-            print 'Noone to mate with :/'
-
-            enemies = self.env.find_encounters(self)
-            if enemies:
-                while True:
-                    enemy = choice(enemies)
-                    if enemy.meet_offer(self):
-                        self.attack(enemy)
-                        break
-            else:
-                print 'Noone left to fight'
+        if not self.reproduce() and not self.travel() and not self.fight():
+            print '{} has nothing to do'.format(self)
 
         print '{} has finished life step'.format(self)
         print '---'
@@ -118,9 +105,41 @@ class Agent(object):
         """
         return True
 
-    def reproduce(self, partner):
-        print '{} mates with {}'.format(self, partner)
-        self.env.reproduce(self, partner)
+    def reproduce(self):
+        for mate in self.env.find_mates(self):
+            if mate.reproduction_offer(self):
+                print '{} mates with {}'.format(self, mate)
+                self.env.reproduce(self, mate)
+                return True
+        else:
+            print '{} has noone to mate with :/'.format(self)
+            return False
+
+    def travel(self):
+        if self.can_travel():
+            neighbours = self.env.neighbour_islands()
+            for island, cost in neighbours.iteritems():
+                if self.energy >= self.env.travel_threshold + cost:
+                    self.env.travel(self, island)
+            else:
+                print 'Nowhere to go :/'
+                return False
+        else:
+            print '{} is too weak to travel'.format(self)
+            return False
+
+    def fight(self):
+        enemies = self.env.find_encounters(self)
+        if enemies:
+            while True:
+                enemy = choice(enemies)
+                if enemy.meet_offer(self):
+                    self.attack(enemy)
+                    return True
+        else:
+            print 'Noone left to fight'
+            return False
+
 
     def die(self):
         """ Invoked when the agent has died, i.e. when his life energy has
@@ -128,19 +147,16 @@ class Agent(object):
         """
         print '{} has died'.format(self)
 
-    def __str__(self):
-        return '{}#{}'.format(self.name, hash(self))
-
 
 class Island(object):
 
     def __init__(self, energy):
-        self.neighbours = []
+        self.neighbours = {}
         self.inhabitants = set()
         self.energy = energy
 
-    def add_neighbour(self, island):
-        self.neighbours.append(island)
+    def add_neighbour(self, island, cost):
+        self.neighbours[island] = cost
 
     def add_agent(self, a):
         self.inhabitants.add(a)
@@ -207,7 +223,7 @@ class Env(object):
             return None
 
     def travel(self, agent, destination):
-        e = self.travel_threshold
+        e = self.island.neighbours[destination]
         agent.energy -= e
         self.island.energy += e
         self.island.remove_agent(agent)
@@ -240,6 +256,7 @@ class EMAS(object):
         'init_energy': 0.5,
         'fight_transfer': 0.2,
         'travel_threshold': 0.7,
+        'travel_cost': 0.2,
         'reproduction_threshold': 0.7,
         'death_threshold': 0.2,
         'mutation_probability': 0.05,
@@ -258,12 +275,14 @@ class EMAS(object):
         """ Creates fully connected island graph.
         """
         size = self.params['world_size']
+        cost = self.params['travel_cost']
+
         self.world = [Island(0) for _ in xrange(size)]
 
         for a in self.world:
             for b in self.world:
                 if a is not b:
-                    a.add_neighbour(b)
+                    a.add_neighbour(b, cost)
 
     def populate_world(self):
         """ Fills the islands with population_size randomly chosen individuals.
