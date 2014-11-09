@@ -1,10 +1,12 @@
 
+from ..hypervolume import hypervolume
 from collections import defaultdict
 
 
 class Stats(object):
-    def __init__(self, emas):
+    def __init__(self, emas, volume):
         self.emas = emas
+        self.volume = volume
 
         self.energy = []
         self.free_energy = []
@@ -12,6 +14,8 @@ class Stats(object):
         self.energy_per_island = defaultdict(list)
         self.population = []
         self.population_per_island = defaultdict(list)
+        self.hvr = []
+        self.refpoint = tuple(r[1] for r in emas.ranges)
 
     def update(self, step):
         total_energy = 0
@@ -20,6 +24,8 @@ class Stats(object):
         island_energy = {}
         energy_per_island = {}
         population_per_island = {}
+
+        vals = []
 
         for island in self.emas.world:
             island_energy[island] = island.energy
@@ -30,9 +36,9 @@ class Stats(object):
             for agent in island.inhabitants:
                 total_energy += agent.energy
                 energy_per_island[island] += agent.energy
-
                 count += 1
                 population_per_island[island] += 1
+                vals.append(agent.val)
 
         self.energy.append(total_energy)
         self.population.append(count)
@@ -40,6 +46,10 @@ class Stats(object):
         self.append(island_energy, self.island_energy)
         self.append(energy_per_island, self.energy_per_island)
         self.append(population_per_island, self.population_per_island)
+
+        vol = hypervolume(self.refpoint, vals)
+        hvr = vol / self.volume
+        self.hvr.append(hvr)
 
 
     def append(self, data, history):

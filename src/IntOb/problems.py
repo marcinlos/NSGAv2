@@ -3,17 +3,6 @@ from itertools import repeat
 from math import sqrt, sin, pi
 
 
-def simple():
-    f = lambda (x, y): x
-    g = lambda (x, y): 1 - x * y
-    F = (f, g)
-
-    bounds = [(0, 1), (0, 1)]
-    ranges = [(0, 1), (0, 1)]
-
-    run(F, bounds, ranges)
-
-
 g = lambda x: 1 + 9 * sum(x[1:]) / float(len(x) - 1)
 
 
@@ -24,9 +13,9 @@ def ZDT1():
     )
     n = 3
     bounds = tuple(repeat((0, 1), n))
-    ranges = [(0, 1), (0, 1)]
-
-    return (F, bounds, ranges)
+    volume = 2./3 + 9
+    ranges = [(0, 1), (0, 10)]
+    return (F, bounds, ranges, volume)
 
 
 def ZDT2():
@@ -36,9 +25,9 @@ def ZDT2():
     )
     n = 3
     bounds = tuple(repeat((0, 1), n))
-    ranges = [(0, 1), (0, 1)]
-
-    return (F, bounds, ranges)
+    volume = 1./3 + 9
+    ranges = [(0, 1), (0, 10)]
+    return (F, bounds, ranges, volume)
 
 
 def ZDT3():
@@ -49,5 +38,4 @@ def ZDT3():
     n = 3
     bounds = tuple(repeat((0, 1), n))
     ranges = [(0, 1), (0, 1)]
-
-    return (F, bounds, ranges)
+    return (F, bounds, ranges, None)
