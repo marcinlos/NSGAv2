@@ -1,8 +1,8 @@
 
 class Plot(object):
 
-    def __init__(self, plot, steps, update_every, data, emas):
-        self.emas = emas
+    def __init__(self, plot, steps, update_every, data, alg):
+        self.alg = alg
         self.steps = steps
         self.update_every = update_every
         self.data = data
@@ -59,7 +59,7 @@ class EnergyPerIslandPlot(Plot):
 
     @property
     def energy_axis(self):
-        n = self.emas.params['world_size']
+        n = self.alg.params['world_size']
         return [0, self.data.max_energy / n * 1.2]
 
 
@@ -74,9 +74,7 @@ class PopulationPlot(Plot):
 
     def redraw(self):
         self.plot.hold(False)
-        self.plot.plot(self.data.energy, '-')
-        self.plot.hold(True)
-        self.plot.plot(self.data.free_energy, '-')
+        self.plot.plot(self.data.population, '-')
         self.set_metadata()
 
     @property
@@ -97,7 +95,7 @@ class SolutionPlot(Plot):
         self.plot.hold(False)
         sx = []
         sy = []
-        for island in self.emas.world:
+        for island in self.alg.world:
             for agent in island.inhabitants:
                 x, y = agent.val
                 sx.append(x)
@@ -112,9 +110,10 @@ class HVRPlot(Plot):
     def set_metadata(self):
         self.plot.set_title('HVR')
         self.plot.set_xlim(self.step_axis)
-        self.plot.set_ylim([0, 1])
+        self.plot.set_ylim(top=1)
 
     def redraw(self):
         self.plot.hold(False)
         self.plot.plot(self.data.hvr, 'r-')
         self.set_metadata()
+
