@@ -67,7 +67,8 @@ def hypervolume(p, xs):
     xs - solution
     """
     n = len(p)
-    points = [(x, n) for x in maximal(xs, inverslyDominates)]
+    relevant = set(maximal(xs, inverslyDominates))
+    points = [(x, n) for x in relevant]
     volume = 0
 
     while points:
