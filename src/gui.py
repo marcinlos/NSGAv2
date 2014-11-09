@@ -12,10 +12,10 @@ import sys
 
 
 conf = [
-# {
-#     'rows': 1, 'cols': 1,
-#     'plots': [SolutionPlot]
-# },
+{
+    'rows': 1, 'cols': 1,
+    'plots': [SolutionPlot]
+},
 {
     'rows': 2, 'cols': 2,
     'plots': [EnergyPlot, EnergyPerIslandPlot, PopulationPlot, HVRPlot]

@@ -40,21 +40,21 @@ class Stats(object):
                 population_per_island[island] += 1
                 vals.append(agent.val)
 
-        self.energy.append(total_energy)
-        self.population.append(count)
-        self.free_energy.append(free_energy)
-        self.append(island_energy, self.island_energy)
-        self.append(energy_per_island, self.energy_per_island)
-        self.append(population_per_island, self.population_per_island)
+        self.energy.append((step, total_energy))
+        self.population.append((step, count))
+        self.free_energy.append((step, free_energy))
+        self.append(step, island_energy, self.island_energy)
+        self.append(step, energy_per_island, self.energy_per_island)
+        self.append(step, population_per_island, self.population_per_island)
 
         vol = hypervolume(self.refpoint, vals)
         hvr = vol / self.volume
-        self.hvr.append(hvr)
+        self.hvr.append((step, hvr))
 
 
-    def append(self, data, history):
+    def append(self, step, data, history):
         for k, v in data.iteritems():
-            history[k].append(v)
+            history[k].append((step, v))
 
     @property
     def init_population(self):

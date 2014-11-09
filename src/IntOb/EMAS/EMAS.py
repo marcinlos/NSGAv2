@@ -129,7 +129,7 @@ class EMAS(object):
         'travel_cost': 0.2,
         'reproduction_threshold': 0.8,
         'death_threshold': 0.1,
-        'mutation_probability': 0.05,
+        'mutation_probability': 0.2,
     }
 
     def __init__(self, fs, bounds, ranges, **params):
@@ -187,4 +187,6 @@ class EMAS(object):
                 agent.step()
             if callback:
                 callback(step, self.agents())
+
+        return self.agents()
 

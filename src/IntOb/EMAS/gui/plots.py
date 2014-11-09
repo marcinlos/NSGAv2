@@ -1,10 +1,9 @@
 
 class Plot(object):
 
-    def __init__(self, plot, steps, update_every, data, alg):
+    def __init__(self, plot, steps, data, alg):
         self.alg = alg
         self.steps = steps
-        self.update_every = update_every
         self.data = data
         self.plot = plot
         self.set_metadata()
@@ -31,9 +30,11 @@ class EnergyPlot(Plot):
 
     def redraw(self):
         self.plot.hold(False)
-        self.plot.plot(self.data.energy, '-')
+        xs, ys = zip(*self.data.energy)
+        self.plot.plot(xs, ys, '-')
         self.plot.hold(True)
-        self.plot.plot(self.data.free_energy, '-')
+        xs, ys = zip(*self.data.free_energy)
+        self.plot.plot(xs, ys, '-')
         self.set_metadata()
 
     @property
@@ -53,7 +54,8 @@ class EnergyPerIslandPlot(Plot):
     def redraw(self):
         self.plot.hold(False)
         for island, history in self.data.energy_per_island.iteritems():
-            self.plot.plot(history, '-')
+            xs, ys = zip(*history)
+            self.plot.plot(xs, ys, '-')
             self.plot.hold(True)
         self.set_metadata()
 
@@ -74,7 +76,8 @@ class PopulationPlot(Plot):
 
     def redraw(self):
         self.plot.hold(False)
-        self.plot.plot(self.data.population, '-')
+        xs, ys = zip(*self.data.population)
+        self.plot.plot(xs, ys, '-')
         self.set_metadata()
 
     @property
@@ -114,6 +117,7 @@ class HVRPlot(Plot):
 
     def redraw(self):
         self.plot.hold(False)
-        self.plot.plot(self.data.hvr, 'r-')
+        xs, ys = zip(*self.data.hvr)
+        self.plot.plot(xs, ys, 'r-')
         self.set_metadata()
 

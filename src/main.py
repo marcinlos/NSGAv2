@@ -55,13 +55,15 @@ class Callback(object):
             EMAS: self.step_emas,
         }[method]
 
-
+    def at_end(self, guys):
+        self.print_hypervolume(guys)
 
 
 def run(F, bounds, ranges, method, volume):
     alg = method(F, bounds, ranges)
     cb = Callback(ranges, volume)
-    return alg.optimize(steps, cb.for_method(method))
+    guys = alg.optimize(steps, cb.for_method(method))
+    cb.at_end(guys)
 
 
 if __name__ == '__main__':
