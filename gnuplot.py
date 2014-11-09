@@ -18,7 +18,7 @@ text = '''
 
 params = {
     'xrange': '0:1',
-    'yrange': '0:1',
+    'yrange': '0:10',
 }
 
 def get_step(name):

@@ -2,7 +2,7 @@
 from itertools import ifilter
 from .utils import dominates, randVector
 from .genetics import Specimen, mutation, crossover
-from random import choice
+from random import choice, shuffle
 
 
 names = [
@@ -39,34 +39,22 @@ class Agent(object):
             self.act()
 
     def attack(self, enemy):
-        print '{} attacks {}'.format(self, enemy)
         self.combat(enemy)
         enemy.attacked(self)
 
     def attacked(self, enemy):
-        print '{} has been attacked by {}'.format(self, enemy)
         self.combat(enemy)
-
-    # Simple, direct actions
-
-    def transfer_energy(self, other, e):
-        self.energy -= e
-        other.energy += e
-
-    def dissipate_energy(self, e):
-        self.energy -= e
-        self.env.accept_energy(e)
 
     def combat(self, enemy):
         best = self.env.winner(self, enemy)
         if self is best:
             gain = self.env.fight_transfer
             self.energy += gain
-            print '{} won, gained {} energy, now {}'.format(self, gain, self.energy)
+            enemy.energy -= gain
         elif enemy is best:
             loss = self.env.fight_transfer
             self.energy -= loss
-            print '{} lost, lost {} energy, now {}'.format(self, loss, self.energy)
+            enemy.energy += loss
 
     def __str__(self):
         return '{}#{}'.format(self.name, hash(self))
@@ -77,13 +65,12 @@ class Agent(object):
         """ Invoked once during every step of lifecycle. Here, agent is free to
         undertake whatever action he feels appropriate.
         """
-        print '{} begins his life step'.format(self)
+        if self.can_reproduce() and self.reproduce():
+            return
+        if self.can_travel() and self.travel():
+            return
+        self.fight()
 
-        if not self.reproduce() and not self.travel() and not self.fight():
-            print '{} has nothing to do'.format(self)
-
-        print '{} has finished life step'.format(self)
-        print '---'
 
     def meet_offer(self, other):
         """ Invoked when some other agent wishes to meet with this one.
@@ -106,38 +93,42 @@ class Agent(object):
         return True
 
     def reproduce(self):
-        for mate in self.env.find_mates(self):
+        mates = self.env.find_mates(self)
+        shuffle(mates)
+
+        for mate in mates:
             if mate.reproduction_offer(self):
-                print '{} mates with {}'.format(self, mate)
                 self.env.reproduce(self, mate)
                 return True
         else:
-            print '{} has noone to mate with :/'.format(self)
             return False
 
     def travel(self):
-        if self.can_travel():
-            neighbours = self.env.neighbour_islands()
-            for island, cost in neighbours.iteritems():
-                if self.energy >= self.env.travel_threshold + cost:
-                    self.env.travel(self, island)
-            else:
-                print 'Nowhere to go :/'
-                return False
+        costs = self.env.neighbour_islands()
+        islands = list(costs.keys())
+        shuffle(islands)
+
+        for island in islands:
+            cost = costs[island]
+            if self.energy >= self.env.travel_threshold + cost:
+                self.env.travel(self, island)
+                return True
         else:
-            print '{} is too weak to travel'.format(self)
             return False
 
     def fight(self):
         enemies = self.env.find_encounters(self)
         if enemies:
-            while True:
+            max_attempts = 10
+            for _ in xrange(max_attempts):
                 enemy = choice(enemies)
                 if enemy.meet_offer(self):
                     self.attack(enemy)
                     return True
+            else:
+                print 'Noone wants to fight ({} rejected challenges)'\
+                    .format(max_attempts)
         else:
-            print 'Noone left to fight'
             return False
 
 
@@ -145,7 +136,7 @@ class Agent(object):
         """ Invoked when the agent has died, i.e. when his life energy has
         fallen below the death threshold.
         """
-        print '{} has died'.format(self)
+        pass
 
 
 class Island(object):
@@ -216,9 +207,9 @@ class Env(object):
 
     def winner(self, a, b):
         if dominates(b.val, a.val):
-            return a
-        elif dominates(a.val, b.val):
             return b
+        elif dominates(a.val, b.val):
+            return a
         else:
             return None
 
@@ -228,6 +219,7 @@ class Env(object):
         self.island.energy += e
         self.island.remove_agent(agent)
         destination.add_agent(agent)
+        agent.env = self.emas.envs[destination]
 
     def died(self, agent):
         self.island.remove_agent(agent)
@@ -251,14 +243,14 @@ class Env(object):
 
 class EMAS(object):
     params = {
-        'world_size' : 2,
-        'population_size': 5,
+        'world_size' : 4,
+        'population_size': 100,
         'init_energy': 0.5,
         'fight_transfer': 0.2,
         'travel_threshold': 0.7,
         'travel_cost': 0.2,
         'reproduction_threshold': 0.7,
-        'death_threshold': 0.2,
+        'death_threshold': 0.1,
         'mutation_probability': 0.05,
     }
 
@@ -270,6 +262,7 @@ class EMAS(object):
         s = 0.1
         self.max_changes = [s * (M - m) for m, M in bounds]
         self.world = []
+        self.envs = {}
 
     def create_world(self):
         """ Creates fully connected island graph.
@@ -292,6 +285,7 @@ class EMAS(object):
 
         for island in self.world:
             env = Env(island, self)
+            self.envs[island] = env
             for _ in xrange(N):
                 x = randVector(self.bounds)
                 val = self.f(x)
@@ -311,7 +305,8 @@ class EMAS(object):
         self.populate_world()
 
         for step in xrange(steps):
-            print '- - - - - - - - - - - - - - - - - - - - - - - - - - -'
             for agent in self.agents():
                 agent.step()
+            if callback:
+                callback(step, self.agents())
 

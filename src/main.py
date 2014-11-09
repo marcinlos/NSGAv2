@@ -13,7 +13,11 @@ def makeCallback(F, ranges, volume):
     refpoint = tuple(r[1] for r in ranges)
 
     def onStep(step, P):
-        print 'step', step
+        total_energy = 0
+        for agent in P:
+            total_energy += agent.energy
+ 
+        print 'step {}, population: {}, energy: {}'.format(step, len(P), total_energy)
 
         if step % 10 == 0:
             vals = [guy.val for guy in P]
