@@ -232,7 +232,10 @@ class RNIPlot(Plot):
             zip(self.data.reproductions, self.data.deaths, self.data.population)
         ]
 
-        self.plot.plot(xs, data, 'r-')
+        self.plot.bar(xs, data, color='r', edgecolor='none')
+        self.plot.hold(True)
+        zero = [0 for _ in self.data.time]
+        self.plot.plot(xs, zero, 'k-')
         self.set_metadata()
 
 
