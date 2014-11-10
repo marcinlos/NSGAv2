@@ -38,6 +38,14 @@ class Env(object):
     def __init__(self, island, emas):
         self.island = island
         self.emas = emas
+        self.reset_stats()
+
+    def reset_stats(self):
+        self.reproductions = 0
+        self.deaths = 0
+        self.encounters = 0
+        self.decided_encounters = 0
+        self.departures = 0
 
     def find_encounters(self, agent):
         enemies = list(self.island.inhabitants)
@@ -78,6 +86,7 @@ class Env(object):
 
         self.island.add_agent(a1)
         self.island.add_agent(a2)
+        self.reproductions += 1
 
     def mutate(self, a):
         p = self.emas.params['mutation_probability']
@@ -98,9 +107,13 @@ class Env(object):
         destination.add_agent(agent)
         agent.env = self.emas.envs[destination]
 
+        self.departures += 1
+
     def died(self, agent):
         agent.dissipate_energy(agent.energy)
         self.island.remove_agent(agent)
+
+        self.deaths += 1
 
     @property
     def fight_transfer(self):

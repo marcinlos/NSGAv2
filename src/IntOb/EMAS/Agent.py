@@ -43,6 +43,7 @@ class Agent(object):
     def attack(self, enemy):
         self.combat(enemy)
         enemy.attacked(self)
+        self.env.encounters += 1
 
     def attacked(self, enemy):
         self.combat(enemy)
@@ -52,6 +53,7 @@ class Agent(object):
         if enemy is best:
             loss = min(self.env.fight_transfer, self.energy)
             self.transfer_energy(enemy, loss)
+            self.env.decided_encounters += 1
         self.encounter_count += 1
         self.dist += distance(self.val, enemy.val)
 

@@ -29,12 +29,13 @@ class EnergyPlot(Plot):
         self.plot.set_ylim(self.energy_axis)
 
     def redraw(self):
+        xs = self.data.time
+
         self.plot.hold(False)
-        xs, ys = zip(*self.data.energy)
-        self.plot.plot(xs, ys, '-')
+        self.plot.plot(xs, self.data.energy, 'r-', label='agents')
         self.plot.hold(True)
-        xs, ys = zip(*self.data.free_energy)
-        self.plot.plot(xs, ys, '-')
+        self.plot.plot(xs, self.data.free_energy, 'g-', label='env')
+        self.plot.legend(fontsize=10)
         self.set_metadata()
 
     @property
@@ -52,10 +53,11 @@ class EnergyPerIslandPlot(Plot):
         self.plot.set_ylim(self.energy_axis)
 
     def redraw(self):
+        xs = self.data.time
+
         self.plot.hold(False)
-        for island, history in self.data.energy_per_island.iteritems():
-            xs, ys = zip(*history)
-            self.plot.plot(xs, ys, '-')
+        for island, data in self.data.island_data:
+            self.plot.plot(xs, data.energy, '-')
             self.plot.hold(True)
         self.set_metadata()
 
@@ -75,9 +77,14 @@ class PopulationPlot(Plot):
         self.plot.set_ylim([0, self.data.init_population * 1.2])
 
     def redraw(self):
+        xs = self.data.time
+
         self.plot.hold(False)
-        xs, ys = zip(*self.data.population)
-        self.plot.plot(xs, ys, '-')
+        self.plot.plot(xs, self.data.population, 'b-', label='all')
+        self.plot.hold(True)
+        self.plot.plot(xs, self.data.reproduction_capable, 'g-', label='repr')
+        self.plot.plot(xs, self.data.travel_capable, 'c-', label='travel')
+        self.plot.legend(fontsize=10)
         self.set_metadata()
 
     @property
@@ -96,14 +103,16 @@ class SolutionPlot(Plot):
 
     def redraw(self):
         self.plot.hold(False)
-        sx = []
-        sy = []
+
         for island in self.alg.world:
+            sx = []
+            sy = []
             for agent in island.inhabitants:
                 x, y = agent.val
                 sx.append(x)
                 sy.append(y)
-        self.plot.plot(sx, sy, 'ro', ms=5)
+            self.plot.plot(sx, sy, 'o', ms=5)
+            self.plot.hold(True)
         self.set_metadata()
 
 class HVRPlot(Plot):
@@ -116,8 +125,106 @@ class HVRPlot(Plot):
         self.plot.set_ylim(top=1)
 
     def redraw(self):
+        xs = self.data.time
         self.plot.hold(False)
-        xs, ys = zip(*self.data.hvr)
-        self.plot.plot(xs, ys, 'r-')
+        self.plot.plot(xs, self.data.hvr, 'r-')
+        self.set_metadata()
+
+
+class ReproductionPlot(Plot):
+    def __init__(self, *args, **kwargs):
+        super(ReproductionPlot, self).__init__(*args, **kwargs)
+
+    def set_metadata(self):
+        self.plot.set_title('Reproductions')
+        self.plot.set_xlim(self.step_axis)
+        # self.plot.set_ylim(top=1)
+
+    def redraw(self):
+        xs = self.data.time
+        self.plot.hold(False)
+        self.plot.plot(xs, self.data.reproductions, 'r-')
+        self.set_metadata()
+
+
+class DeathsPlot(Plot):
+    def __init__(self, *args, **kwargs):
+        super(DeathsPlot, self).__init__(*args, **kwargs)
+
+    def set_metadata(self):
+        self.plot.set_title('Deaths')
+        self.plot.set_xlim(self.step_axis)
+        # self.plot.set_ylim(top=1)
+
+    def redraw(self):
+        xs = self.data.time
+        self.plot.hold(False)
+        self.plot.plot(xs, self.data.deaths, 'r-')
+        self.set_metadata()
+
+
+class TravelPlot(Plot):
+    def __init__(self, *args, **kwargs):
+        super(TravelPlot, self).__init__(*args, **kwargs)
+
+    def set_metadata(self):
+        self.plot.set_title('Travel')
+        self.plot.set_xlim(self.step_axis)
+
+    def redraw(self):
+        xs = self.data.time
+        self.plot.hold(False)
+        self.plot.plot(xs, self.data.departures, 'r-')
+        self.set_metadata()
+
+
+class EncounterPlot(Plot):
+    def __init__(self, *args, **kwargs):
+        super(EncounterPlot, self).__init__(*args, **kwargs)
+
+    def set_metadata(self):
+        self.plot.set_title('Encounters')
+        self.plot.set_xlim(self.step_axis)
+
+    def redraw(self):
+        xs = self.data.time
+        self.plot.hold(False)
+        self.plot.plot(xs, self.data.encounters, 'b-', label='all')
+        self.plot.hold(True)
+        self.plot.plot(xs, self.data.decided_encounters, 'r-', label='win')
+        self.plot.legend(fontsize=10)
+        self.set_metadata()
+
+
+class AgentEnergyPlot(Plot):
+    def __init__(self, *args, **kwargs):
+        super(AgentEnergyPlot, self).__init__(*args, **kwargs)
+        self.travel_threshold = self.alg.params['travel_threshold']
+        self.reproduction_threshold = self.alg.params['reproduction_threshold']
+        self.death_threshold = self.alg.params['death_threshold']
+
+    def set_metadata(self):
+        self.plot.set_title('Avg agent energy')
+        self.plot.set_xlim(self.step_axis)
+        self.plot.set_ylim(bottom=0)
+
+    def make_series(self, value):
+        return [value for _ in self.data.time]
+
+    def redraw(self):
+        xs = self.data.time
+        self.plot.hold(False)
+        self.plot.plot(xs, self.data.avg_energy, 'b-', label='avg')
+        self.plot.hold(True)
+
+        travel_series = self.make_series(self.travel_threshold)
+        reproduction_series = self.make_series(self.reproduction_threshold)
+        death_series = self.make_series(self.death_threshold)
+
+        self.plot.plot(xs, travel_series, 'c-', label='travel')
+        self.plot.plot(xs, reproduction_series, 'g-', label='repr')
+        self.plot.plot(xs, death_series, 'r-', label='death')
+
+        self.plot.legend(fontsize=10)
         self.set_metadata()
 

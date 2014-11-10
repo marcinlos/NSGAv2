@@ -10,6 +10,7 @@ class Window(QtGui.QDialog):
     step_signal = QtCore.pyqtSignal()
     start_delay = 1000
     update_delay = 0.5
+    redraw_period = 10
 
     def __init__(self, steps, data, alg, plot_types, rows=1, cols=1, parent=None):
         super(Window, self).__init__(parent)
@@ -20,7 +21,7 @@ class Window(QtGui.QDialog):
 
         self.plots = []
 
-        i = 0
+        i = 1
         for pt in plot_types:
             p = fig.add_subplot(rows, cols, i)
             plot = pt(p, steps, data, alg)
@@ -35,7 +36,7 @@ class Window(QtGui.QDialog):
         self.setLayout(layout)
 
     def update(self, step, P):
-        if step % 10 == 0:
+        if step % self.redraw_period == 0:
             self.step_signal.emit()
             time.sleep(self.update_delay)
 
