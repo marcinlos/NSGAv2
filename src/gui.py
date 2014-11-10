@@ -17,9 +17,24 @@ conf = [
     'plots': [SolutionPlot]
 },
 {
+    'rows': 1, 'cols': 1,
+    'plots': [EnergyDistributionPlot]
+},
+{
     'rows': 2, 'cols': 2,
-    'plots': [EnergyPlot, EnergyPerIslandPlot, PopulationPlot, HVRPlot]
-}]
+    'plots': [
+        EncounterPlot, LifeCyclePlot,
+        RNIPlot, PopulationPlot
+    ]
+},
+{
+    'rows': 2, 'cols': 2,
+    'plots': [
+        AgentEnergyPlot, HVRPlot,
+        EnergyPlot, TravelPlot
+    ]
+}
+]
 
 
 def create_windows(conf):
@@ -60,9 +75,10 @@ if __name__ == '__main__':
 
     def update(step, P):
         print 'Step {}'.format(step)
-        data.update(step)
-        for w in windows:
-            w.update(step, P)
+        if step % 1 == 0:
+            data.update(step)
+            for w in windows:
+                w.update(step, P)
 
     computation = ComputationThread(alg, steps, refpoint, update)
     computation.start()

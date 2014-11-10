@@ -1,4 +1,7 @@
 
+import matplotlib.pyplot as plt
+
+
 class Plot(object):
 
     def __init__(self, plot, steps, data, alg):
@@ -41,6 +44,36 @@ class EnergyPlot(Plot):
     @property
     def energy_axis(self):
         return [0, self.data.max_energy * 1.2]
+
+
+class EnergyDistributionPlot(Plot):
+
+    colors = [plt.cm.jet(x / 9.0) for x in xrange(10)]
+
+    def __init__(self, *args, **kwargs):
+        super(EnergyDistributionPlot, self).__init__(*args, **kwargs)
+
+    def set_metadata(self):
+        self.plot.set_title('Energy distribution')
+        self.plot.set_xlim(self.step_axis)
+        self.plot.set_ylim([0, 1])
+
+    def redraw(self):
+        xs = self.data.time
+        self.plot.hold(False)
+
+        data = zip(*self.data.energy_dist)
+
+        n = self.data.bin_count
+        data = [[] for _ in xrange(n)]
+
+        for i in xrange(len(self.data.energy_dist)):
+            pop = self.data.population[i]
+            for j in xrange(n):
+                data[j].append(self.data.energy_dist[i][j] / float(pop))
+
+        self.plot.stackplot(xs, *data, colors=self.colors)
+        self.set_metadata()
 
 
 class EnergyPerIslandPlot(Plot):
@@ -115,6 +148,7 @@ class SolutionPlot(Plot):
             self.plot.hold(True)
         self.set_metadata()
 
+
 class HVRPlot(Plot):
     def __init__(self, *args, **kwargs):
         super(HVRPlot, self).__init__(*args, **kwargs)
@@ -138,12 +172,11 @@ class ReproductionPlot(Plot):
     def set_metadata(self):
         self.plot.set_title('Reproductions')
         self.plot.set_xlim(self.step_axis)
-        # self.plot.set_ylim(top=1)
 
     def redraw(self):
         xs = self.data.time
         self.plot.hold(False)
-        self.plot.plot(xs, self.data.reproductions, 'r-')
+        self.plot.plot(xs, self.data.reproductions, 'g-')
         self.set_metadata()
 
 
@@ -154,12 +187,52 @@ class DeathsPlot(Plot):
     def set_metadata(self):
         self.plot.set_title('Deaths')
         self.plot.set_xlim(self.step_axis)
-        # self.plot.set_ylim(top=1)
 
     def redraw(self):
         xs = self.data.time
         self.plot.hold(False)
         self.plot.plot(xs, self.data.deaths, 'r-')
+        self.set_metadata()
+
+
+class LifeCyclePlot(Plot):
+    def __init__(self, *args, **kwargs):
+        super(LifeCyclePlot, self).__init__(*args, **kwargs)
+
+    def set_metadata(self):
+        self.plot.set_title('Life & death')
+        self.plot.set_xlim(self.step_axis)
+
+    def redraw(self):
+        xs = self.data.time
+        self.plot.hold(False)
+        self.plot.plot(xs, self.data.deaths, 'r-', label='deaths')
+        self.plot.hold(True)
+        births = [2*n for n in self.data.reproductions]
+        self.plot.plot(xs, births, 'g-', label='births')
+        self.plot.legend(fontsize=10)
+        self.set_metadata()
+
+
+class RNIPlot(Plot):
+    def __init__(self, *args, **kwargs):
+        super(RNIPlot, self).__init__(*args, **kwargs)
+
+    def set_metadata(self):
+        self.plot.set_title('Rate of Natural Increase')
+        self.plot.set_xlim(self.step_axis)
+
+    def redraw(self):
+        xs = self.data.time
+        self.plot.hold(False)
+
+        data = [
+            (2*r - d) / s
+            for r, d, s in
+            zip(self.data.reproductions, self.data.deaths, self.data.population)
+        ]
+
+        self.plot.plot(xs, data, 'r-')
         self.set_metadata()
 
 
@@ -174,7 +247,7 @@ class TravelPlot(Plot):
     def redraw(self):
         xs = self.data.time
         self.plot.hold(False)
-        self.plot.plot(xs, self.data.departures, 'r-')
+        self.plot.plot(xs, self.data.departures, 'b-')
         self.set_metadata()
 
 

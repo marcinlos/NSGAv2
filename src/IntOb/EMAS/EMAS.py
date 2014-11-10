@@ -134,8 +134,8 @@ class Env(object):
 
 class EMAS(object):
     params = {
-        'world_size' : 4,
-        'population_size': 100,
+        'world_size' : 10,
+        'population_size': 200,
         'init_energy': 0.5,
         'fight_transfer': 0.2,
         'travel_threshold': 0.7,
@@ -144,6 +144,18 @@ class EMAS(object):
         'death_threshold': 0.1,
         'mutation_probability': 0.2,
     }
+
+    # params = {
+    #     'world_size' : 4,
+    #     'population_size': 100,
+    #     'init_energy': 0.43,
+    #     'fight_transfer': 0.96,
+    #     'travel_threshold': 0.94,
+    #     'travel_cost': 0.46,
+    #     'reproduction_threshold': 0.84,
+    #     'death_threshold': 0.04,
+    #     'mutation_probability': 0.33,
+    # }
 
     def __init__(self, fs, bounds, ranges, **params):
         self.f = lambda x: tuple(f(x) for f in fs)
@@ -195,11 +207,14 @@ class EMAS(object):
         self.create_world()
         self.populate_world()
 
+        if callback:
+            callback(0, self.agents())
+
         for step in xrange(steps):
             for agent in self.agents():
                 agent.step()
             if callback:
-                callback(step, self.agents())
+                callback(step + 1, self.agents())
 
         return self.agents()
 

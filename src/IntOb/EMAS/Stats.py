@@ -20,6 +20,9 @@ class Data(object):
 
 
 class Stats(object):
+
+    bin_count = 10
+
     def __init__(self, emas, volume):
         self.emas = emas
         self.volume = volume
@@ -27,6 +30,8 @@ class Stats(object):
         self.time = []
         self.data = defaultdict(Data)
         self.total = Data()
+
+        self.energy_dist = []
 
         self.hvr = []
         self.refpoint = tuple(r[1] for r in emas.ranges)
@@ -45,6 +50,13 @@ class Stats(object):
     def __getitem__(self, island):
         return self.data[island]
 
+    def find_bin(self, agent):
+        e = int(agent.energy * self.bin_count)
+        return max(0, min(e, self.bin_count - 1))
+
+    def make_bins(self):
+        return [0 for _ in xrange(self.bin_count)]
+
     def update(self, step):
         last = self.time[-1] if self.time else -1
         self.time.append(step)
@@ -62,6 +74,7 @@ class Stats(object):
         departures = 0
 
         vals = []
+        bins = self.make_bins()
 
         reproduction_threshold = self.emas.params['reproduction_threshold']
         travel_threshold = self.emas.params['travel_threshold']
@@ -98,6 +111,7 @@ class Stats(object):
                 if agent.energy >= travel_threshold:
                     island_travel_capable += 1
                 vals.append(agent.val)
+                bins[self.find_bin(agent)] += 1
 
             energy += island_energy
             reproduction_capable += island_reproduction_capable
@@ -126,6 +140,8 @@ class Stats(object):
         vol = hypervolume(self.refpoint, vals)
         hvr = vol / self.volume
         self.hvr.append(hvr)
+
+        self.energy_dist.append(bins)
 
 
     def append(self, step, data, history):
