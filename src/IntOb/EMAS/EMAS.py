@@ -78,6 +78,15 @@ class Env(object):
         a2 = Agent(c2.x, v2, 0, self)
 
         e = self.emas.params['init_energy']
+
+        p = 0.4
+        e_env = min(self.island.energy, 2 * p * e)
+        self.island.energy -= e_env
+        e -= e_env / 2
+
+        a1.energy += e_env / 2
+        a2.energy += e_env / 2
+
         p1.transfer_energy(a1, e)
         p2.transfer_energy(a2, e)
 
