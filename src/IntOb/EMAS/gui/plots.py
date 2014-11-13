@@ -156,11 +156,28 @@ class HVRPlot(Plot):
         self.plot.set_title('HVR')
         self.plot.set_xlim(self.step_axis)
         self.plot.set_ylim(top=1)
+        self.plot.grid(True)
 
     def redraw(self):
         xs = self.data.time
         self.plot.hold(False)
         self.plot.plot(xs, self.data.hvr, 'r-')
+
+        t, max_hvr = max(zip(xs, self.data.hvr), key=lambda (_,val): val)
+        text = '{:.2%}'.format(max_hvr)
+        _, _, ym, _ = self.plot.axis()
+        self.plot.annotate(
+            s=text,
+            xy=(t, max_hvr),
+            xytext=(t, ym + 0.1 * (1 - ym)),
+            textcoords='data',
+            ha='center',
+            fontsize=10,
+            arrowprops=dict(
+                arrowstyle='->',
+                shrinkB=15,
+            )
+        )
 
 
 class ReproductionPlot(Plot):
