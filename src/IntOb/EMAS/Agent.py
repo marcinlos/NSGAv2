@@ -1,7 +1,7 @@
 
 from random import choice, shuffle
 from operator import attrgetter
-from ..utils import distance
+from ..utils import distance, tossCoin
 
 
 class Agent(object):
@@ -70,11 +70,25 @@ class Agent(object):
         """ Invoked once during every step of lifecycle. Here, agent is free to
         undertake whatever action he feels appropriate.
         """
-        if self.can_reproduce() and self.reproduce():
-            return
-        if self.can_travel() and self.travel():
-            return
-        self.fight()
+        options = []
+        if self.can_reproduce():
+            options.append(self.reproduce)
+        if self.can_travel():
+            options.append(self.travel)
+
+        if len(options) == 1:
+            if not options[0]():
+                self.fight()
+        elif len(options) == 2:
+            if tossCoin(0.3):
+                if not self.travel():
+                    if not self.reproduce():
+                        self.fight()
+            else:
+                if not self.reproduce():
+                    self.fight()
+        else:
+            self.fight()
 
 
     def meet_offer(self, other):
