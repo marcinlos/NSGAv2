@@ -17,6 +17,8 @@ from random import random, randint, uniform as rand_uniform
 
 problem = ZDT2
 steps = 100
+generations = 20
+population_size = 30
 
 
 def eval_func(genome, steps=100):
@@ -144,15 +146,15 @@ def run_main():
     ga = GSimpleGA.GSimpleGA(genome)
     ga.setMinimax(Consts.minimaxType['maximize'])
     ga.selector.set(Selectors.GRouletteWheel)
-    ga.setGenerations(10)
-    ga.setPopulationSize(15)
+    ga.setGenerations(generations)
+    ga.setPopulationSize(population_size)
 
     ga.evolve(freq_stats=1)
 
     # Best individual
     best = ga.bestIndividual()
     print best
-    print eval_func(best, steps=1000)
+    print eval_func(best, steps=steps)
 
 
 if __name__ == "__main__":
