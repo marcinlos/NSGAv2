@@ -107,7 +107,10 @@ class Env(object):
         elif dominates(a.val, b.val):
             return a
         else:
-            return None
+            if a.encounter_count > 0 and b.encounter_count > 0:
+                return a if a.dist > b.dist else b if a.dist < b.dist else None
+            else:
+                return None
 
     def travel(self, agent, destination):
         e = self.island.neighbours[destination]
