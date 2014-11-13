@@ -28,6 +28,7 @@ class Window(QtGui.QDialog):
             self.plots.append(plot)
             i += 1
 
+        fig.tight_layout()
         self.step_signal.connect(self.redraw)
 
         layout = QtGui.QVBoxLayout()
