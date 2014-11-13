@@ -4,6 +4,7 @@ from itertools import ifilter
 from ..utils import dominates, randVector
 from ..genetics import Specimen, mutation, crossover
 from .Agent import Agent
+from .param_sets import param_sets, default_params
 
 names = [
     'Adam', 'Bartek', 'Ania', 'Pawel', 'Kasia', 'Andrzej', 'Alicja',
@@ -107,10 +108,13 @@ class Env(object):
         elif dominates(a.val, b.val):
             return a
         else:
+            # return None
             if a.encounter_count > 0 and b.encounter_count > 0:
                 return a if a.dist > b.dist else b if a.dist < b.dist else None
             else:
                 return None
+            # return choice([a, b])
+            # return None
 
     def travel(self, agent, destination):
         e = self.island.neighbours[destination]
@@ -145,29 +149,7 @@ class Env(object):
 
 
 class EMAS(object):
-    params = {
-        'world_size' : 10,
-        'population_size': 200,
-        'init_energy': 0.5,
-        'fight_transfer': 0.2,
-        'travel_threshold': 0.7,
-        'travel_cost': 0.2,
-        'reproduction_threshold': 0.8,
-        'death_threshold': 0.1,
-        'mutation_probability': 0.2,
-    }
-
-    # params = {
-    #     'world_size' : 4,
-    #     'population_size': 100,
-    #     'init_energy': 0.43,
-    #     'fight_transfer': 0.96,
-    #     'travel_threshold': 0.94,
-    #     'travel_cost': 0.46,
-    #     'reproduction_threshold': 0.84,
-    #     'death_threshold': 0.04,
-    #     'mutation_probability': 0.33,
-    # }
+    params = default_params
 
     def __init__(self, fs, bounds, ranges, **params):
         self.f = lambda x: tuple(f(x) for f in fs)
