@@ -138,7 +138,7 @@ class ConfGenome(GenomeBase.GenomeBase, object):
         param_str = 'Params:\n'
         for k, v in self.conf.iteritems():
             param_str += '  {:30}: {}\n'.format(k, v)
-        return old + param_str
+        return old + param_str + '\n{}'.format(self.conf)
 
 
 def run_main():
