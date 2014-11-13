@@ -42,6 +42,6 @@ class Window(QtGui.QDialog):
 
     def redraw(self):
         for plot in self.plots:
-            plot.redraw()
+            plot.update()
         self.canvas.draw()
 

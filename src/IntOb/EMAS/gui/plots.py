@@ -17,6 +17,10 @@ class Plot(object):
     def set_style(self):
         pass
 
+    def update(self):
+        self.redraw()
+        self.set_metadata()
+
     @property
     def step_axis(self):
         return [0, self.steps]
@@ -39,7 +43,6 @@ class EnergyPlot(Plot):
         self.plot.hold(True)
         self.plot.plot(xs, self.data.free_energy, 'g-', label='env')
         self.plot.legend(fontsize=10)
-        self.set_metadata()
 
     @property
     def energy_axis(self):
@@ -73,7 +76,6 @@ class EnergyDistributionPlot(Plot):
                 data[j].append(self.data.energy_dist[i][j] / float(pop))
 
         self.plot.stackplot(xs, *data, colors=self.colors)
-        self.set_metadata()
 
 
 class EnergyPerIslandPlot(Plot):
@@ -92,7 +94,6 @@ class EnergyPerIslandPlot(Plot):
         for island, data in self.data.island_data:
             self.plot.plot(xs, data.energy, '-')
             self.plot.hold(True)
-        self.set_metadata()
 
     @property
     def energy_axis(self):
@@ -118,7 +119,6 @@ class PopulationPlot(Plot):
         self.plot.plot(xs, self.data.reproduction_capable, 'g-', label='repr')
         self.plot.plot(xs, self.data.travel_capable, 'c-', label='travel')
         self.plot.legend(fontsize=10)
-        self.set_metadata()
 
     @property
     def population_axis(self):
@@ -146,7 +146,6 @@ class SolutionPlot(Plot):
                 sy.append(y)
             self.plot.plot(sx, sy, 'o', ms=5)
             self.plot.hold(True)
-        self.set_metadata()
 
 
 class HVRPlot(Plot):
@@ -162,7 +161,6 @@ class HVRPlot(Plot):
         xs = self.data.time
         self.plot.hold(False)
         self.plot.plot(xs, self.data.hvr, 'r-')
-        self.set_metadata()
 
 
 class ReproductionPlot(Plot):
@@ -177,7 +175,6 @@ class ReproductionPlot(Plot):
         xs = self.data.time
         self.plot.hold(False)
         self.plot.plot(xs, self.data.reproductions, 'g-')
-        self.set_metadata()
 
 
 class DeathsPlot(Plot):
@@ -192,7 +189,6 @@ class DeathsPlot(Plot):
         xs = self.data.time
         self.plot.hold(False)
         self.plot.plot(xs, self.data.deaths, 'r-')
-        self.set_metadata()
 
 
 class LifeCyclePlot(Plot):
@@ -211,7 +207,6 @@ class LifeCyclePlot(Plot):
         births = [2*n for n in self.data.reproductions]
         self.plot.plot(xs, births, 'g-', label='births')
         self.plot.legend(fontsize=10)
-        self.set_metadata()
 
 
 class RNIPlot(Plot):
@@ -236,7 +231,6 @@ class RNIPlot(Plot):
         self.plot.hold(True)
         zero = [0 for _ in self.data.time]
         self.plot.plot(xs, zero, 'k-')
-        self.set_metadata()
 
 
 class TravelPlot(Plot):
@@ -251,7 +245,6 @@ class TravelPlot(Plot):
         xs = self.data.time
         self.plot.hold(False)
         self.plot.plot(xs, self.data.departures, 'b-')
-        self.set_metadata()
 
 
 class EncounterPlot(Plot):
@@ -269,7 +262,6 @@ class EncounterPlot(Plot):
         self.plot.hold(True)
         self.plot.plot(xs, self.data.decided_encounters, 'r-', label='win')
         self.plot.legend(fontsize=10)
-        self.set_metadata()
 
 
 class AgentEnergyPlot(Plot):
@@ -302,5 +294,4 @@ class AgentEnergyPlot(Plot):
         self.plot.plot(xs, death_series, 'r-', label='death')
 
         self.plot.legend(fontsize=10)
-        self.set_metadata()
 
