@@ -298,17 +298,17 @@ class AgentEnergyPlot(Plot):
 
     def redraw(self):
         xs = self.data.time
-        self.plot.hold(False)
-        self.plot.plot(xs, self.data.avg_energy, 'b-', label='avg')
-        self.plot.hold(True)
-
         travel_series = self.make_series(self.travel_threshold)
         reproduction_series = self.make_series(self.reproduction_threshold)
         death_series = self.make_series(self.death_threshold)
 
+        self.plot.hold(False)
         self.plot.plot(xs, travel_series, 'c-', label='travel')
+        self.plot.hold(True)
+
         self.plot.plot(xs, reproduction_series, 'g-', label='repr')
         self.plot.plot(xs, death_series, 'r-', label='death')
+        self.plot.plot(xs, self.data.avg_energy, 'b-', label='avg')
 
         self.plot.legend(fontsize=10)
 
