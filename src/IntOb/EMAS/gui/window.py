@@ -12,7 +12,7 @@ class Window(QtGui.QDialog):
     update_delay = 0.5
     redraw_period = 10
 
-    def __init__(self, steps, data, alg, plot_types, rows=1, cols=1, parent=None):
+    def __init__(self, steps, data, alg, plot_types, rows, cols, lock, parent=None):
         super(Window, self).__init__(parent)
 
         fig = plt.figure()
@@ -24,7 +24,7 @@ class Window(QtGui.QDialog):
         i = 1
         for pt in plot_types:
             p = fig.add_subplot(rows, cols, i)
-            plot = pt(p, steps, data, alg)
+            plot = pt(p, steps, data, alg, lock)
             self.plots.append(plot)
             i += 1
 

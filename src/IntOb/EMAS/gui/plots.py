@@ -4,11 +4,12 @@ import matplotlib.pyplot as plt
 
 class Plot(object):
 
-    def __init__(self, plot, steps, data, alg):
+    def __init__(self, plot, steps, data, alg, lock):
         self.alg = alg
         self.steps = steps
         self.data = data
         self.plot = plot
+        self.lock = lock
         self.set_metadata()
 
     def set_metadata(self):
@@ -18,8 +19,9 @@ class Plot(object):
         pass
 
     def update(self):
-        self.redraw()
-        self.set_metadata()
+        with self.lock.readLock:
+            self.redraw()
+            self.set_metadata()
 
     @property
     def step_axis(self):
