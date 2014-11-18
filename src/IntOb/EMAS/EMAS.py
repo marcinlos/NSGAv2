@@ -6,15 +6,6 @@ from ..genetics import Specimen, mutation, crossover
 from .Agent import Agent
 from .param_sets import param_sets, default_params
 
-names = [
-    'Adam', 'Bartek', 'Ania', 'Pawel', 'Kasia', 'Andrzej', 'Alicja',
-    'Michal', 'Zbigniew', 'Mateusz', 'Marcin', 'Filip', 'Felicja',
-    'Tomek', 'Piotr', 'Paulina', 'Dariusz'
-]
-
-
-def pick_name():
-    return choice(names)
 
 
 class Island(object):
@@ -90,9 +81,6 @@ class Env(object):
 
         p1.transfer_energy(a1, e)
         p2.transfer_energy(a2, e)
-
-        a1.name = pick_name()
-        a2.name = pick_name()
 
         self.island.add_agent(a1)
         self.island.add_agent(a2)
@@ -188,7 +176,6 @@ class EMAS(object):
                 val = self.f(x)
                 agent = Agent(x, val, energy, env)
                 island.add_agent(agent)
-                agent.name = pick_name()
 
     def agents(self):
         agents = []

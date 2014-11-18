@@ -62,7 +62,7 @@ class Agent(object):
         return self.dist / (self.encounter_count + 1)
 
     def __str__(self):
-        return '{}#{}'.format(self.name, hash(self))
+        return 'Agent#{}'.format(hash(self))
 
     # Methods determining behaviour of agent (strategy, actions)
 
