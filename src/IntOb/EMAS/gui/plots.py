@@ -150,6 +150,29 @@ class SolutionPlot(Plot):
             self.plot.hold(True)
 
 
+class EliteSolutionPlot(Plot):
+    def __init__(self, *args, **kwargs):
+        super(EliteSolutionPlot, self).__init__(*args, **kwargs)
+
+    def set_metadata(self):
+        self.plot.set_title('Elite agents')
+        self.plot.set_xlim([0, 1])
+        self.plot.set_ylim(bottom=0)
+
+    def redraw(self):
+        self.plot.hold(False)
+
+        for island in self.alg.valhalla:
+            sx = []
+            sy = []
+            for agent in island.inhabitants:
+                x, y = agent.val
+                sx.append(x)
+                sy.append(y)
+            self.plot.plot(sx, sy, 'o', ms=5)
+            self.plot.hold(True)
+
+
 class HVRPlot(Plot):
     def __init__(self, *args, **kwargs):
         super(HVRPlot, self).__init__(*args, **kwargs)

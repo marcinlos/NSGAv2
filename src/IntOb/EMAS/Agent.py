@@ -13,6 +13,7 @@ class Agent(object):
 
         self.energy = energy
         self.prestige = 0
+        self.is_elite = False
 
         self.encounter_count = 0
         self.dist = 0
@@ -22,6 +23,9 @@ class Agent(object):
 
     def can_reproduce(self):
         return self.energy >= self.env.reproduction_threshold
+
+    def can_become_elite(self):
+        return self.prestige >= self.env.elite_threshold
 
     def must_die(self):
         return self.energy < self.env.death_threshold
@@ -52,10 +56,17 @@ class Agent(object):
 
     def combat(self, enemy):
         best = self.env.winner(self, enemy)
+
         if enemy is best:
             loss = min(self.env.fight_transfer, self.energy)
             self.transfer_energy(enemy, loss)
+            enemy.prestige += 1
+
+            if self.is_elite:
+                self.dissipate_energy(self.energy)
+
             self.env.decided_encounters += 1
+
         self.encounter_count += 1
         self.dist += distance(self.val, enemy.val)
 
@@ -72,23 +83,33 @@ class Agent(object):
         """ Invoked once during every step of lifecycle. Here, agent is free to
         undertake whatever action he feels appropriate.
         """
-        options = []
-        if self.can_reproduce():
-            options.append(self.reproduce)
-        if self.can_travel():
-            options.append(self.travel)
+        if not self.is_elite:
 
-        if len(options) == 1:
-            if not options[0]():
-                self.fight()
-        elif len(options) == 2:
-            if tossCoin(0.3):
-                if not self.travel():
+            if self.can_become_elite():
+                if self.spread < 0.3:
+                    self.is_elite = True
+                    self.env.transcend(self)
+                    return
+
+            options = []
+            if self.can_reproduce():
+                options.append(self.reproduce)
+            if self.can_travel():
+                options.append(self.travel)
+
+            if len(options) == 1:
+                if not options[0]():
+                    self.fight()
+            elif len(options) == 2:
+                if tossCoin(0.3):
+                    if not self.travel():
+                        if not self.reproduce():
+                            self.fight()
+                else:
                     if not self.reproduce():
                         self.fight()
             else:
-                if not self.reproduce():
-                    self.fight()
+                self.fight()
         else:
             self.fight()
 
@@ -115,7 +136,6 @@ class Agent(object):
 
     def reproduce(self):
         mates = self.env.find_mates(self)
-        #shuffle(mates)
         mates.sort(key=attrgetter('spread'))
         mates.reverse()
 

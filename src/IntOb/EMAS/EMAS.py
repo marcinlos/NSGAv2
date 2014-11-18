@@ -1,6 +1,6 @@
 
 from random import choice
-from itertools import ifilter
+from itertools import ifilter, chain
 from ..utils import dominates, randVector
 from ..genetics import Specimen, mutation, crossover
 from .Agent import Agent
@@ -10,10 +10,11 @@ from .param_sets import param_sets, default_params
 
 class Island(object):
 
-    def __init__(self, energy):
+    def __init__(self, energy, elite=False):
         self.neighbours = {}
         self.inhabitants = set()
         self.energy = energy
+        self.is_elite = elite
 
     def add_neighbour(self, island, cost):
         self.neighbours[island] = cost
@@ -71,13 +72,13 @@ class Env(object):
 
         e = self.emas.params['init_energy']
 
-        p = 0.4
-        e_env = min(self.island.energy, 2 * p * e)
-        self.island.energy -= e_env
-        e -= e_env / 2
+        # p = 0.4
+        # e_env = min(self.island.energy, 2 * p * e)
+        # self.island.energy -= e_env
+        # e -= e_env / 2
 
-        a1.energy += e_env / 2
-        a2.energy += e_env / 2
+        # a1.energy += e_env / 2
+        # a2.energy += e_env / 2
 
         p1.transfer_energy(a1, e)
         p2.transfer_energy(a2, e)
@@ -85,6 +86,12 @@ class Env(object):
         self.island.add_agent(a1)
         self.island.add_agent(a2)
         self.reproductions += 1
+
+    def transcend(self, agent):
+        self.island.remove_agent(agent)
+        new_home = choice(self.emas.valhalla)
+        new_home.add_agent(agent)
+        agent.env = self.emas.envs[new_home]
 
     def mutate(self, a):
         p = self.emas.params['mutation_probability']
@@ -101,8 +108,6 @@ class Env(object):
                 return a if a.dist > b.dist else b if a.dist < b.dist else None
             else:
                 return None
-            # return choice([a, b])
-            # return None
 
     def travel(self, agent, destination):
         e = self.island.neighbours[destination]
@@ -135,6 +140,10 @@ class Env(object):
     def death_threshold(self):
         return self.emas.params['death_threshold']
 
+    @property
+    def elite_threshold(self):
+        return self.emas.params['elite_threshold']
+
 
 class EMAS(object):
     params = default_params
@@ -162,6 +171,18 @@ class EMAS(object):
                 if a is not b:
                     a.add_neighbour(b, cost)
 
+        elite_size = self.params['elite_islands']
+        self.valhalla  = [Island(0, elite=True) for _ in xrange(elite_size)]
+
+        for a in self.valhalla:
+            for b in self.valhalla:
+                if a is not b:
+                    a.add_neighbour(b, cost)
+
+        for island in self.islands():
+            env = Env(island, self)
+            self.envs[island] = env
+
     def populate_world(self):
         """ Fills the islands with population_size randomly chosen individuals.
         """
@@ -169,33 +190,58 @@ class EMAS(object):
         energy = self.params['init_energy']
 
         for island in self.world:
-            env = Env(island, self)
-            self.envs[island] = env
+            env = self.envs[island]
             for _ in xrange(N):
                 x = randVector(self.bounds)
                 val = self.f(x)
                 agent = Agent(x, val, energy, env)
                 island.add_agent(agent)
 
-    def agents(self):
-        agents = []
+    def create_new_agents(self):
+        init_energy = self.params['init_energy']
+
+        for island in self.islands():
+            N = int(island.energy / init_energy)
+
+            for _ in xrange(N):
+                where = choice(self.world)
+                env = self.envs[where]
+                x = randVector(self.bounds)
+                val = self.f(x)
+                agent = Agent(x, val, init_energy, env)
+                where.add_agent(agent)
+                island.energy -= init_energy
+
+    def islands(self):
+        return chain(self.world, self.valhalla)
+
+    def normal_agents(self):
         for island in self.world:
             for agent in island.inhabitants:
-                agents.append(agent)
-        return agents
+                yield agent
+
+    def elite_agents(self):
+        for island in self.valhalla:
+            for agent in island.inhabitants:
+                yield agent
+
+    def agents(self):
+        return chain(self.normal_agents(), self.elite_agents())
 
     def optimize(self, steps, callback=None):
         self.create_world()
         self.populate_world()
 
         if callback:
-            callback(0, self.agents())
+            callback(0, list(self.agents()))
 
         for step in xrange(steps):
-            for agent in self.agents():
+            self.create_new_agents()
+
+            for agent in list(self.agents()):
                 agent.step()
             if callback:
-                callback(step + 1, self.agents())
+                callback(step + 1, list(self.agents()))
 
-        return self.agents()
+        return list(self.agents())
 
