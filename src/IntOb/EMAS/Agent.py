@@ -9,8 +9,10 @@ class Agent(object):
     def __init__(self, x, val, energy, env):
         self.env = env
         self.x = x
-        self.energy = energy
         self.val = val
+
+        self.energy = energy
+        self.prestige = 0
 
         self.encounter_count = 0
         self.dist = 0
