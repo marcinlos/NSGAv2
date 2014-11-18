@@ -6,6 +6,7 @@ from IntOb.EMAS.gui.lock import RWLock as Lock
 
 from IntOb.EMAS import EMAS, Stats
 from IntOb.hypervolume import hypervolume
+from IntOb.EMAS.param_sets import param_sets
 from IntOb.EMAS.gui import *
 from IntOb.problems import *
 
@@ -52,9 +53,9 @@ def create_windows(conf, lock):
     return windows
 
 
-if __name__ == '__main__':
+def parse_params():
     if len(sys.argv) < 3:
-        print 'Usage: ./gui.py <problem> <steps>'
+        print 'Usage: ./gui.py <problem> <steps> [<param_set>]'
         sys.exit(1)
 
     problem = sys.argv[1].upper()
@@ -65,10 +66,25 @@ if __name__ == '__main__':
         sys.exit(1)
 
     problem_def = globals()[problem]
-    F, bounds, ranges, volume = problem_def()
-    refpoint = (1., 1.)
 
-    alg = EMAS(F, bounds, ranges)
+    if len(sys.argv) >= 4:
+        try:
+            set_name = sys.argv[3]
+            params = param_sets[set_name]
+        except KeyError:
+            print 'Unknown parameter set: {}'.format(set_name)
+            sys.exit(1)
+    else:
+        params = {}
+
+    return problem_def, steps, params
+
+
+if __name__ == '__main__':
+    problem_def, steps, params = parse_params()
+    F, bounds, ranges, volume = problem_def()
+
+    alg = EMAS(F, bounds, ranges, **params)
     data = Stats(alg, volume)
 
     app = QtGui.QApplication(sys.argv)
@@ -83,7 +99,7 @@ if __name__ == '__main__':
             for w in windows:
                 w.update(step, P)
 
-    computation = ComputationThread(alg, steps, refpoint, update)
+    computation = ComputationThread(alg, steps, update)
     computation.start()
 
     sys.exit(app.exec_())
