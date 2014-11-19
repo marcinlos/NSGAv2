@@ -51,22 +51,37 @@ param_sets = {
         'death_threshold'        : 0.011191930782663546,
         'world_size'             : 5,
         'init_energy'            : 0.23445471288678413,
-        'elite_islands'          : 3
+        'elite_islands'          : 3,
+        'epsilon'                : 0.05,
     },
 
     'elite_30': {
-        'mutation_probability': 0.2490354908430038,
-        'world_size': 5,
-        'reproduction_threshold': 0.9342156647013863,
-        'travel_threshold': 0.91127853131119,
-        'population_size': 61,
-        'fight_transfer': 0.6526402801959923,
-        'travel_cost': 0.4450553678153778,
-        'death_threshold': 0.2832187418262572,
-        'init_energy': 0.636321195818432,
-        'elite_threshold': 36.04654709032059,
-        'elite_islands': 7
-    }
+        'mutation_probability'   : 0.2490354908430038,
+        'world_size'             : 5,
+        'reproduction_threshold' : 0.9342156647013863,
+        'travel_threshold'       : 0.91127853131119,
+        'population_size'        : 61,
+        'fight_transfer'         : 0.6526402801959923,
+        'travel_cost'            : 0.4450553678153778,
+        'death_threshold'        : 0.2832187418262572,
+        'init_energy'            : 0.636321195818432,
+        'elite_threshold'        : 36.04654709032059,
+        'elite_islands'          : 7
+    },
+    'experiment': {
+        'mutation_probability'   : 0.3211883020091674,
+        'reproduction_threshold' : 0.8863780574457699,
+        'travel_threshold'       : 0.1554255294381377,
+        'elite_threshold'        : 14.092198198330188,
+        'population_size'        : 100,
+        'fight_transfer'         : 0.19312127267072037,
+        'travel_cost'            : 0.992618760060326,
+        'death_threshold'        : 0.011191930782663546,
+        'world_size'             : 5,
+        'init_energy'            : 0.63445471288678413,
+        'elite_islands'          : 3,
+        'epsilon'                : 0.1,
+    },
 }
 
-default_params = param_sets['sga_for_elite']
+default_params = param_sets['experiment']

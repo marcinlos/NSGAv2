@@ -1,7 +1,7 @@
 
 from random import choice, shuffle
 from operator import attrgetter
-from ..utils import distance, tossCoin
+from ..utils import distance, tossCoin, dominates
 
 
 class Agent(object):
@@ -16,7 +16,23 @@ class Agent(object):
         self.is_elite = False
 
         self.encounter_count = 0
+        self.close_encounter_count = 0
+        self.won = 0
+        self.lost = 0
         self.dist = 0
+        self.total_close_encounter_count = 0
+
+    @property
+    def met_someone(self):
+        return self.encounter_count > 0
+
+    @property
+    def domination_coeff(self):
+        return self.won / float(self.encounter_count) if self.met_someone else 0
+
+    @property
+    def dominated_coeff(self):
+        return self.lost / float(self.encounter_count) if self.met_someone else 0
 
     def can_travel(self):
         return self.energy >= self.env.travel_threshold
@@ -57,9 +73,14 @@ class Agent(object):
     def combat(self, enemy):
         best = self.env.winner(self, enemy)
 
+        if dominates(self.val, enemy.val):
+            self.won += 1
+
         if enemy is best:
             loss = min(self.env.fight_transfer, self.energy)
             self.transfer_energy(enemy, loss)
+            # self.lost += 1
+            # enemy.won += 1
             enemy.prestige += 1
 
             if self.is_elite:
@@ -68,11 +89,28 @@ class Agent(object):
             self.env.decided_encounters += 1
 
         self.encounter_count += 1
-        self.dist += distance(self.val, enemy.val)
+
+        d = distance(self.val, enemy.val)
+        if d < self.env.epsilon:
+            self.close_encounter_count += 1
+
+        self.total_close_encounter_count += enemy.close_encounter_count
+        self.dist += d
 
     @property
     def spread(self):
         return self.dist / (self.encounter_count + 1)
+
+    @property
+    def crowding(self):
+        return self.close_encounter_count / float(self.close_encounter_count + 1)
+
+    @property
+    def avg_close_encounter_count(self):
+        if self.met_someone:
+            return self.total_close_encounter_count / float(self.encounter_count)
+        else:
+            return 0
 
     def __str__(self):
         return 'Agent#{}'.format(hash(self))
@@ -86,7 +124,7 @@ class Agent(object):
         if not self.is_elite:
 
             if self.can_become_elite():
-                if self.spread < 0.3:
+                if self.avg_close_encounter_count > self.close_encounter_count:
                     self.is_elite = True
                     self.env.transcend(self)
                     return

@@ -71,17 +71,42 @@ class Env(object):
         a2 = Agent(c2.x, v2, 0, self)
 
         e = self.emas.params['init_energy']
+        e_t = self.emas.params['fight_transfer']
 
         # p = 0.4
         # e_env = min(self.island.energy, 2 * p * e)
         # self.island.energy -= e_env
         # e -= e_env / 2
-
         # a1.energy += e_env / 2
         # a2.energy += e_env / 2
 
-        p1.transfer_energy(a1, e)
-        p2.transfer_energy(a2, e)
+        # p1.transfer_energy(a1, e)
+        # p2.transfer_energy(a2, e)
+
+        if dominates(p1.val, p2.val):
+            p2.transfer_energy(a1, (p2.energy - e_t) / 2)
+            p1.transfer_energy(a1, e - (p2.energy - e_t) / 2)
+            p2.transfer_energy(a2, (p2.energy - e_t) / 2)
+            p1.transfer_energy(a2, e - (p2.energy - e_t) / 2)
+        elif dominates(p2.val, p1.val):
+            p1.transfer_energy(a1, (p2.energy - e_t) / 2)
+            p2.transfer_energy(a1, e - (p2.energy - e_t) / 2)
+            p1.transfer_energy(a2, (p2.energy - e_t) / 2)
+            p2.transfer_energy(a2, e - (p2.energy - e_t) / 2)
+        else:
+            if p1.won <= p2.won:
+                p1, p2 = p2, p1
+            if p1.won > p2.won:
+                if p2.lost > 0:
+                    p2.transfer_energy(a1, (p2.energy - 2 * e_t) / 2)
+                    p1.transfer_energy(a1, e - (p2.energy - 2 * e_t) / 2)
+                    p2.transfer_energy(a2, (p2.energy - 2 * e_t) / 2)
+                    p1.transfer_energy(a2, e - (p2.energy - 2 * e_t) / 2)
+                elif p2.lost == 0:
+                    p1.transfer_energy(a1, (p2.energy - 2 * e_t) / 2)
+                    p2.transfer_energy(a1, e - (p2.energy - 2 * e_t) / 2)
+                    p1.transfer_energy(a2, (p2.energy - 2 * e_t) / 2)
+                    p2.transfer_energy(a2, e - (p2.energy - 2 * e_t) / 2)
 
         self.island.add_agent(a1)
         self.island.add_agent(a2)
@@ -102,12 +127,21 @@ class Env(object):
             return b
         elif dominates(a.val, b.val):
             return a
-        else:
-            # return None
-            if a.encounter_count > 0 and b.encounter_count > 0:
-                return a if a.dist > b.dist else b if a.dist < b.dist else None
+        elif not a.is_elite and not b.is_elite:
+            if a.dominated_coeff < b.dominated_coeff:
+                return a
+            elif a.dominated_coeff > b.dominated_coeff:
+                return b
             else:
-                return None
+                e_q = self.emas.params['fight_transfer']
+                if a.crowding < b.crowding and (b.energy > e_q or b.lost > 0):
+                    return a
+                elif a.crowding > b.crowding and (a.energy > e_q or a.lost > 0):
+                    return b
+            # if a.encounter_count > 0 and b.encounter_count > 0:
+            #     return a if a.dist > b.dist else b if a.dist < b.dist else None
+            # else:
+            #     return None
 
     def travel(self, agent, destination):
         e = self.island.neighbours[destination]
@@ -143,6 +177,10 @@ class Env(object):
     @property
     def elite_threshold(self):
         return self.emas.params['elite_threshold']
+
+    @property
+    def epsilon(self):
+        return self.emas.params['epsilon']
 
 
 class EMAS(object):
@@ -201,16 +239,19 @@ class EMAS(object):
         init_energy = self.params['init_energy']
 
         for island in self.islands():
-            N = int(island.energy / init_energy)
+            if island.energy > 0:
+                N = int(island.energy / init_energy)
 
-            for _ in xrange(N):
-                where = choice(self.world)
-                env = self.envs[where]
-                x = randVector(self.bounds)
-                val = self.f(x)
-                agent = Agent(x, val, init_energy, env)
-                where.add_agent(agent)
-                island.energy -= init_energy
+                for _ in xrange(N):
+                    where = choice(self.world)
+                    env = self.envs[where]
+                    x = randVector(self.bounds)
+                    val = self.f(x)
+                    agent = Agent(x, val, init_energy, env)
+                    where.add_agent(agent)
+                    island.energy -= init_energy
+            else:
+                print 'Negative island energy: {}'.format(island.energy)
 
     def islands(self):
         return chain(self.world, self.valhalla)
