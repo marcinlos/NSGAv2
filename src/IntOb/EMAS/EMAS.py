@@ -89,10 +89,10 @@ class Env(object):
             p2.transfer_energy(a2, (p2.energy - e_t) / 2)
             p1.transfer_energy(a2, e - (p2.energy - e_t) / 2)
         elif dominates(p2.val, p1.val):
-            p1.transfer_energy(a1, (p2.energy - e_t) / 2)
-            p2.transfer_energy(a1, e - (p2.energy - e_t) / 2)
-            p1.transfer_energy(a2, (p2.energy - e_t) / 2)
-            p2.transfer_energy(a2, e - (p2.energy - e_t) / 2)
+            p1.transfer_energy(a1, (p1.energy - e_t) / 2)
+            p2.transfer_energy(a1, e - (p1.energy - e_t) / 2)
+            p1.transfer_energy(a2, (p1.energy - e_t) / 2)
+            p2.transfer_energy(a2, e - (p1.energy - e_t) / 2)
         else:
             if p1.won <= p2.won:
                 p1, p2 = p2, p1
@@ -103,10 +103,10 @@ class Env(object):
                     p2.transfer_energy(a2, (p2.energy - 2 * e_t) / 2)
                     p1.transfer_energy(a2, e - (p2.energy - 2 * e_t) / 2)
                 elif p2.lost == 0:
-                    p1.transfer_energy(a1, (p2.energy - 2 * e_t) / 2)
-                    p2.transfer_energy(a1, e - (p2.energy - 2 * e_t) / 2)
-                    p1.transfer_energy(a2, (p2.energy - 2 * e_t) / 2)
-                    p2.transfer_energy(a2, e - (p2.energy - 2 * e_t) / 2)
+                    p1.transfer_energy(a1, (p1.energy - 2 * e_t) / 2)
+                    p2.transfer_energy(a1, e - (p1.energy - 2 * e_t) / 2)
+                    p1.transfer_energy(a2, (p1.energy - 2 * e_t) / 2)
+                    p2.transfer_energy(a2, e - (p1.energy - 2 * e_t) / 2)
 
         self.island.add_agent(a1)
         self.island.add_agent(a2)

@@ -7,7 +7,7 @@ from IntOb.EMAS.gui.lock import RWLock as Lock
 from IntOb.EMAS import EMAS, Stats
 from IntOb.hypervolume import hypervolume
 from IntOb.EMAS.param_sets import param_sets
-from IntOb.EMAS.gui import *
+from IntOb.gui import *
 from IntOb.problems import *
 
 import sys

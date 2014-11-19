@@ -55,6 +55,7 @@ class Agent(object):
             self.act()
 
     def transfer_energy(self, other, amount):
+        # amount = max(self.energy, amount)
         self.energy -= amount
         other.energy += amount
 
