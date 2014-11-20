@@ -2,15 +2,17 @@
 # encoding: utf-8
 
 from PyQt4 import QtGui
-from IntOb.EMAS.gui.lock import RWLock as Lock
+from IntOb.gui.lock import RWLock as Lock
 
-from IntOb.EMAS import EMAS, Stats
+from IntOb.EMAS import Stats
+from IntOb.EMAS2 import EMAS
 from IntOb.hypervolume import hypervolume
 from IntOb.EMAS.param_sets import param_sets
 from IntOb.gui import *
 from IntOb.problems import *
 
 import sys
+import argparse
 
 
 conf = [
@@ -43,7 +45,7 @@ conf = [
 ]
 
 
-def create_windows(conf, lock):
+def create_windows(conf, steps, lock):
     windows = []
 
     for page in conf:
@@ -58,34 +60,32 @@ def create_windows(conf, lock):
 
 
 def parse_params():
-    if len(sys.argv) < 3:
-        print 'Usage: ./gui.py <problem> <steps> [<param_set>]'
-        sys.exit(1)
+    parser = argparse.ArgumentParser()
+    parser.add_argument('problem', help='optimization problem to solve')
+    parser.add_argument('steps', help='number of simulation steps', type=int)
+    parser.add_argument('param_set', help='predefined parameter set', nargs='?')
+    parser.add_argument('--stat-freq', type=int, default=1)
+    return parser.parse_args()
 
-    problem = sys.argv[1].upper()
-    steps = int(sys.argv[2])
 
-    if problem not in globals():
+if __name__ == '__main__':
+    args = parse_params()
+
+    try:
+        problem_def = globals()[args.problem.upper()]
+    except KeyError:
         print 'Unknown problem: {}'.format(problem)
         sys.exit(1)
 
-    problem_def = globals()[problem]
-
-    if len(sys.argv) >= 4:
+    if args.param_set is not None:
         try:
-            set_name = sys.argv[3]
-            params = param_sets[set_name]
+            params = param_sets[args.param_set]
         except KeyError:
             print 'Unknown parameter set: {}'.format(set_name)
             sys.exit(1)
     else:
         params = {}
 
-    return problem_def, steps, params
-
-
-if __name__ == '__main__':
-    problem_def, steps, params = parse_params()
     F, bounds, ranges, volume = problem_def()
 
     alg = EMAS(F, bounds, ranges, **params)
@@ -93,17 +93,17 @@ if __name__ == '__main__':
 
     app = QtGui.QApplication(sys.argv)
     lock = Lock()
-    windows = create_windows(conf, lock)
+    windows = create_windows(conf, args.steps, lock)
 
     def update(step, P):
         print 'Step {}'.format(step)
-        if step % 1 == 0:
+        if step % args.stat_freq == 0:
             with lock.writeLock:
                 data.update(step)
             for w in windows:
                 w.update(step, P)
 
-    computation = ComputationThread(alg, steps, update)
+    computation = ComputationThread(alg, args.steps, update)
     computation.start()
 
     sys.exit(app.exec_())
