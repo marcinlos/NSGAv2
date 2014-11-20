@@ -37,8 +37,9 @@ def ZDT3():
     )
     n = 30
     bounds = tuple(repeat((0, 1), n))
+    volume = 9 + 0.51874411074632231777
     ranges = [(0, 1), (0, 10)]
-    return (F, bounds, ranges, 1)
+    return (F, bounds, ranges, volume)
 
 
 def ZDT1_3D():
@@ -72,5 +73,6 @@ def ZDT3_3D():
     )
     n = 3
     bounds = tuple(repeat((0, 1), n))
+    volume = 9 + 0.51874411074632231777
     ranges = [(0, 1), (0, 10)]
-    return (F, bounds, ranges, 1)
+    return (F, bounds, ranges, volume)
