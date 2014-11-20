@@ -9,7 +9,7 @@ class Window(QtGui.QDialog):
 
     step_signal = QtCore.pyqtSignal()
     start_delay = 1000
-    update_delay = 0.5
+    update_delay = 0.3
     redraw_period = 10
 
     def __init__(self, steps, data, alg, plot_types, rows, cols, lock, parent=None):
