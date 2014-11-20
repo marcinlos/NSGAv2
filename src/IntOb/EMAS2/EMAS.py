@@ -21,7 +21,8 @@ class Agent(object):
         return self.can_reproduce
 
     def seek_migration(self):
-        return choice(self.env.neighbouring_islands)
+        if self.env.neighbouring_islands:
+            return choice(self.env.neighbouring_islands)
 
     def seek_meet(self):
         return self.random_peer()
@@ -99,17 +100,18 @@ class Environment(object):
     def strategy_migration(self, agent):
         if agent.wants_to_migrate():
             where = agent.seek_migration()
-            cost = self.cost[where]
+            if where is not None:
+                cost = self.cost[where]
 
-            if agent.energy >= cost + self.travel_threshold:
-                self.dissipate(agent, cost)
-                self.move(agent, where)
-                self.departures += 1
+                if agent.energy >= cost + self.travel_threshold:
+                    self.dissipate(agent, cost)
+                    self.move(agent, where)
+                    self.departures += 1
 
     def strategy_meet(self, a1):
         if a1.wants_to_meet():
             a2 = a1.seek_meet()
-            if a2.accept_meet(a1):
+            if a2 is not None and a2.accept_meet(a1):
                 if self.dominates(a1, a2):
                     self.transfer(a1, a2, self.fight_transfer)
                     self.decided_encounters += 1
@@ -121,7 +123,7 @@ class Environment(object):
     def strategy_reproduce(self, a1):
         if a1.wants_to_reproduce:
             a2 = a1.seek_partner()
-            if a2.accept_reproduction(a1):
+            if a2 is not None and a2.accept_reproduction(a1):
                 x21, x12 = self.create_offspring(a1, a2)
                 x21 = self.mutate(x21)
                 x12 = self.mutate(x12)
