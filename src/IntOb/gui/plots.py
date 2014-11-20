@@ -110,7 +110,6 @@ class PopulationPlot(Plot):
     def set_metadata(self):
         self.plot.set_title('Total population size')
         self.plot.set_xlim(self.step_axis)
-        self.plot.set_ylim([0, self.data.init_population * 1.2])
 
     def redraw(self):
         xs = self.data.time

@@ -71,11 +71,11 @@ param_sets = {
     'experiment': {
         'mutation_probability'   : 0.3211883020091674,
         'reproduction_threshold' : 0.8863780574457699,
-        'travel_threshold'       : 0.1554255294381377,
+        'travel_threshold'       : 0.7554255294381377,
         'elite_threshold'        : 14.092198198330188,
         'population_size'        : 100,
         'fight_transfer'         : 0.19312127267072037,
-        'travel_cost'            : 0.992618760060326,
+        'travel_cost'            : 0.192618760060326,
         'death_threshold'        : 0.011191930782663546,
         'world_size'             : 5,
         'init_energy'            : 0.63445471288678413,

@@ -18,10 +18,10 @@ conf = [
     'rows': 1, 'cols': 1,
     'plots': [SolutionPlot]
 },
-{
-    'rows': 1, 'cols': 1,
-    'plots': [EliteSolutionPlot]
-},
+# {
+#     'rows': 1, 'cols': 1,
+#     'plots': [EliteSolutionPlot]
+# },
 {
     'rows': 1, 'cols': 1,
     'plots': [EnergyDistributionPlot]

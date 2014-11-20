@@ -1,7 +1,8 @@
 #! /usr/bin/env python
 
 from IntOb.NSGAv2 import NSGA
-from IntOb.EMAS import EMAS, Stats
+from IntOb.EMAS2 import EMAS
+from IntOb.EMAS import Stats
 from IntOb.hypervolume import hypervolume
 from IntOb.problems import *
 import sys

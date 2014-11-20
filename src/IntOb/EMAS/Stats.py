@@ -137,8 +137,8 @@ class Stats(object):
         self.total.decided_encounters.append(decided_encounters)
         self.total.departures.append(departures)
 
-        for agent in self.emas.elite_agents():
-            vals.append(agent.val)
+        # for agent in self.emas.elite_agents():
+        #     vals.append(agent.val)
 
         vol = hypervolume(self.refpoint, vals)
         hvr = vol / self.volume
