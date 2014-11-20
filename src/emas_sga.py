@@ -2,7 +2,8 @@
 # encoding: utf-8
 
 from IntOb.NSGAv2 import NSGA
-from IntOb.EMAS import EMAS, Stats
+from IntOb.EMAS2 import EMAS
+from IntOb.EMAS import Stats
 from IntOb.hypervolume import hypervolume
 from IntOb.problems import *
 
@@ -16,34 +17,40 @@ from random import random, randint, uniform as rand_uniform
 import sys
 
 
-problem = ZDT2
-steps = 100
+problem = ZDT1
+steps = 1000
 generations = 20
-population_size = 30
+population_size = 5
+
+inhabitants = 500
 
 
-def eval_func(genome, steps=100):
-    F, bounds, ranges, volume = problem()
-    refpoint = tuple(r[1] for r in ranges)
+def make_eval_func(steps):
+    def eval_func(genome):
+        F, bounds, ranges, volume = problem()
+        refpoint = tuple(r[1] for r in ranges)
 
-    print 'Eval...',
-    sys.stdout.flush()
+        print 'Eval...',
+        sys.stdout.flush()
 
-    alg = EMAS(F, bounds, ranges, **genome.conf)
-    guys = alg.optimize(steps, None)
+        genome.conf['population_size'] = inhabitants / genome.conf['world_size']
+        alg = EMAS(F, bounds, ranges, **genome.conf)
+        guys = alg.optimize(steps, None)
 
-    vals = [guy.val for guy in guys]
+        vals = [guy.val for guy in guys]
 
-    print 'HVR for {} points...'.format(len(vals)),
-    sys.stdout.flush()
+        print 'HVR for {} points...'.format(len(vals)),
+        sys.stdout.flush()
 
-    V = hypervolume(refpoint, vals)
+        V = hypervolume(refpoint, vals)
+        hvr = V / volume
 
-    print 'done.'
-    sys.stdout.flush()
+        print 'done -- {:.2%}'.format(hvr)
+        sys.stdout.flush()
 
-    hvr = V / volume
-    return 100 * hvr
+        return 100 * hvr
+
+    return eval_func
 
 
 def mutate(genome, what, s, m=None, M=None, rand_gen=rand_uniform):
@@ -106,7 +113,7 @@ def mutator(genome, **kwargs):
         mutations += 1
 
     if Util.randomFlipCoin(p):
-        mutate_int(genome, 'world_size', 3, m=1, M=5)
+        mutate_int(genome, 'world_size', 3, m=1, M=20)
         mutations += 1
 
     return mutations
@@ -121,8 +128,8 @@ def crossover(genome, **kwargs):
 
 def initializer(genome, **kwargs):
     params = {
-        'world_size' : randint(1, 5),
-        'population_size': randint(20, 100),
+        'world_size' : randint(1, 20),
+        'population_size': 0, #randint(20, 100),
         'elite_islands': randint(1, 5),
         'init_energy': rand_uniform(0.2, 1),
         'fight_transfer': rand_uniform(0, 1),
@@ -145,7 +152,7 @@ class ConfGenome(GenomeBase.GenomeBase, object):
         self.set_rules()
 
     def set_rules(self):
-        self.evaluator.set(eval_func)
+        self.evaluator.set(make_eval_func(steps))
         self.initializator.set(initializer)
         self.mutator.set(mutator)
         self.crossover.set(crossover)
@@ -180,7 +187,7 @@ def run_main():
     # Best individual
     best = ga.bestIndividual()
     print best
-    print eval_func(best, steps=steps)
+    print make_eval_func(steps)(best)
 
 
 if __name__ == "__main__":
