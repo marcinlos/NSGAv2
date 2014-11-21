@@ -208,11 +208,10 @@ class Environment(object):
             elif a1.lost_frac > a2.lost_frac:
                 self.victory(a2, a1)
             else:
-                if a1.crowding < a2.crowding and (a2.energy > self.fight_transfer
-                        or a2.lost > 0):
+                m = self.fight_transfer + self.death_threshold
+                if a1.crowding < a2.crowding and (a2.energy > m or a2.lost > 0):
                     self.victory(a1, a2)
-                if a2.crowding < a1.crowding and (a1.energy > self.fight_transfer
-                        or a1.lost > 0):
+                if a2.crowding < a1.crowding and (a1.energy > m or a1.lost > 0):
                     self.victory(a2, a1)
 
     def victory(self, winner, looser):
