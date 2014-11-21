@@ -17,16 +17,19 @@ import argparse
 
 conf = [
 {
-    'rows': 1, 'cols': 1,
-    'plots': [SolutionPlot]
+    'rows': 2, 'cols': 2,
+    'plots': [
+        SolutionPlot, SolutionDensityPlot,
+        SolutionPrestigePlot, SolutionEnergyPlot
+    ]
 },
-# {
-#     'rows': 1, 'cols': 1,
-#     'plots': [EliteSolutionPlot]
-# },
 {
     'rows': 1, 'cols': 1,
-    'plots': [EnergyDistributionPlot]
+    'plots': [EliteSolutionPlot]
+},
+{
+    'rows': 1, 'cols': 1,
+    'plots': [FrontPlot]
 },
 {
     'rows': 2, 'cols': 2,

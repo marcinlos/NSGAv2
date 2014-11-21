@@ -24,7 +24,7 @@ class Window(QtGui.QDialog):
         i = 1
         for pt in plot_types:
             p = fig.add_subplot(rows, cols, i)
-            plot = pt(p, steps, data, alg, lock)
+            plot = pt(fig, p, steps, data, alg, lock)
             self.plots.append(plot)
             i += 1
 

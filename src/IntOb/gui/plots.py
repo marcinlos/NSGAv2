@@ -1,13 +1,15 @@
 
 import matplotlib.pyplot as plt
+from ..utils import maximal, inverslyDominates
 
 
 class Plot(object):
 
-    def __init__(self, plot, steps, data, alg, lock):
+    def __init__(self, fig, plot, steps, data, alg, lock):
         self.alg = alg
         self.steps = steps
         self.data = data
+        self.fig = fig
         self.plot = plot
         self.lock = lock
         self.set_metadata()
@@ -33,7 +35,7 @@ class EnergyPlot(Plot):
         super(EnergyPlot, self).__init__(*args, **kwargs)
 
     def set_metadata(self):
-        self.plot.set_title('Total energy in the system')
+        self.plot.set_title('Total energy')
         self.plot.set_xlim(self.step_axis)
         self.plot.set_ylim(self.energy_axis)
 
@@ -170,6 +172,105 @@ class EliteSolutionPlot(Plot):
                 sy.append(y)
             self.plot.plot(sx, sy, 'o', ms=5)
             self.plot.hold(True)
+
+
+class SolutionDensityPlot(Plot):
+    def __init__(self, *args, **kwargs):
+        super(SolutionDensityPlot, self).__init__(*args, **kwargs)
+
+    def set_metadata(self):
+        self.plot.set_title('Density')
+        self.plot.set_xlim([0, 1])
+        self.plot.set_ylim(bottom=0)
+
+    def redraw(self):
+        self.plot.hold(False)
+
+        sx = []
+        sy = []
+        val = []
+        for agent in self.alg.agents():
+            x, y = agent.val
+            sx.append(x)
+            sy.append(y)
+            val.append(agent.crowding)
+
+        self.plot.scatter(sx, sy, c=val, cmap=plt.cm.jet, vmin=0, vmax=1)
+
+
+class SolutionEnergyPlot(Plot):
+    def __init__(self, *args, **kwargs):
+        super(SolutionEnergyPlot, self).__init__(*args, **kwargs)
+
+    def set_metadata(self):
+        self.plot.set_title('Energy')
+        self.plot.set_xlim([0, 1])
+        self.plot.set_ylim(bottom=0)
+
+    def redraw(self):
+        self.plot.hold(False)
+
+        sx = []
+        sy = []
+        val = []
+        for agent in self.alg.agents():
+            x, y = agent.val
+            sx.append(x)
+            sy.append(y)
+            val.append(agent.energy)
+
+        self.plot.scatter(sx, sy, c=val, cmap=plt.cm.jet, vmin=0, vmax=1)
+
+
+class SolutionPrestigePlot(Plot):
+    def __init__(self, *args, **kwargs):
+        super(SolutionPrestigePlot, self).__init__(*args, **kwargs)
+
+    def set_metadata(self):
+        self.plot.set_title('Prestige')
+        self.plot.set_xlim([0, 1])
+        self.plot.set_ylim(bottom=0)
+
+    def redraw(self):
+        self.plot.hold(False)
+
+        sx = []
+        sy = []
+        val = []
+        for agent in self.alg.agents():
+            x, y = agent.val
+            sx.append(x)
+            sy.append(y)
+            val.append(agent.prestige)
+
+        M = self.alg.params['elite_threshold']
+        self.plot.scatter(sx, sy, c=val, cmap=plt.cm.jet, vmin=0, vmax=M)
+
+
+class FrontPlot(Plot):
+    def __init__(self, *args, **kwargs):
+        super(FrontPlot, self).__init__(*args, **kwargs)
+
+    def set_metadata(self):
+        self.plot.set_title('Front')
+        self.plot.set_xlim([0, 1])
+        self.plot.set_ylim(bottom=0)
+
+    def redraw(self):
+        self.plot.hold(False)
+
+        agents = self.alg.all_agents()
+        less = lambda a, b: inverslyDominates(a.val, b.val)
+        front = maximal(agents, less)
+
+        sx = []
+        sy = []
+        for agent in front:
+            x, y = agent.val
+            sx.append(x)
+            sy.append(y)
+
+        self.plot.plot(sx, sy, 'o', ms=5)
 
 
 class HVRPlot(Plot):
