@@ -220,7 +220,7 @@ class Environment(object):
         self.decided_encounters += 1
 
     def strategy_reproduce(self, a1):
-        if a1.wants_to_reproduce:
+        if a1.wants_to_reproduce():
             a2 = a1.seek_partner()
             if a2 is not None and a2.accept_reproduction(a1):
                 x21, x12 = self.create_offspring(a1, a2)
