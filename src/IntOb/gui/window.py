@@ -15,6 +15,8 @@ class Window(QtGui.QDialog):
     def __init__(self, steps, data, alg, plot_types, rows, cols, lock, parent=None):
         super(Window, self).__init__(parent)
 
+        self.lock = lock
+
         fig = plt.figure()
         self.canvas = FigureCanvas(fig)
         # self.toolbar = NavigationToolbar(self.canvas, self)
@@ -24,7 +26,7 @@ class Window(QtGui.QDialog):
         i = 1
         for pt in plot_types:
             p = fig.add_subplot(rows, cols, i)
-            plot = pt(fig, p, steps, data, alg, lock)
+            plot = pt(fig, p, steps, data, alg)
             self.plots.append(plot)
             i += 1
 
@@ -42,7 +44,8 @@ class Window(QtGui.QDialog):
             time.sleep(self.update_delay)
 
     def redraw(self):
-        for plot in self.plots:
-            plot.update()
-        self.canvas.draw()
+        with self.lock.readLock:
+            for plot in self.plots:
+                plot.update()
+            self.canvas.draw()
 

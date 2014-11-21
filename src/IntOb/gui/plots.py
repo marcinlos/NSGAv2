@@ -5,13 +5,12 @@ from ..utils import maximal, inverslyDominates
 
 class Plot(object):
 
-    def __init__(self, fig, plot, steps, data, alg, lock):
+    def __init__(self, fig, plot, steps, data, alg):
         self.alg = alg
         self.steps = steps
         self.data = data
         self.fig = fig
         self.plot = plot
-        self.lock = lock
         self.set_metadata()
 
     def set_metadata(self):
@@ -21,9 +20,8 @@ class Plot(object):
         pass
 
     def update(self):
-        with self.lock.readLock:
-            self.redraw()
-            self.set_metadata()
+        self.redraw()
+        self.set_metadata()
 
     @property
     def step_axis(self):
