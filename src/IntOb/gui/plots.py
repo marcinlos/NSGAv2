@@ -125,7 +125,17 @@ class PopulationPlot(Plot):
         return [0, self.data.max_energy * 1.2]
 
 
-class SolutionPlot(Plot):
+class BaseSolutionPlot(Plot):
+    def __init__(self, *args, **kwargs):
+        super(BaseSolutionPlot, self).__init__(*args, **kwargs)
+
+    def plot_front(self):
+        for xs, ys in self.alg.problem.front:
+            self.plot.plot(xs, ys, 'g-')
+            self.plot.hold(True)
+
+
+class SolutionPlot(BaseSolutionPlot):
     def __init__(self, *args, **kwargs):
         super(SolutionPlot, self).__init__(*args, **kwargs)
 
@@ -136,6 +146,7 @@ class SolutionPlot(Plot):
 
     def redraw(self):
         self.plot.hold(False)
+        self.plot_front()
 
         for island in self.alg.world:
             sx = []
@@ -145,10 +156,9 @@ class SolutionPlot(Plot):
                 sx.append(x)
                 sy.append(y)
             self.plot.plot(sx, sy, 'o', ms=5)
-            self.plot.hold(True)
 
 
-class EliteSolutionPlot(Plot):
+class EliteSolutionPlot(BaseSolutionPlot):
     def __init__(self, *args, **kwargs):
         super(EliteSolutionPlot, self).__init__(*args, **kwargs)
 
@@ -159,6 +169,7 @@ class EliteSolutionPlot(Plot):
 
     def redraw(self):
         self.plot.hold(False)
+        self.plot_front()
 
         for island in self.alg.valhalla:
             sx = []
@@ -171,7 +182,7 @@ class EliteSolutionPlot(Plot):
             self.plot.hold(True)
 
 
-class SolutionDensityPlot(Plot):
+class SolutionDensityPlot(BaseSolutionPlot):
     def __init__(self, *args, **kwargs):
         super(SolutionDensityPlot, self).__init__(*args, **kwargs)
 
@@ -182,6 +193,7 @@ class SolutionDensityPlot(Plot):
 
     def redraw(self):
         self.plot.hold(False)
+        self.plot_front()
 
         sx = []
         sy = []
@@ -195,7 +207,7 @@ class SolutionDensityPlot(Plot):
         self.plot.scatter(sx, sy, c=val, cmap=plt.cm.jet, vmin=0, vmax=1)
 
 
-class SolutionEnergyPlot(Plot):
+class SolutionEnergyPlot(BaseSolutionPlot):
     def __init__(self, *args, **kwargs):
         super(SolutionEnergyPlot, self).__init__(*args, **kwargs)
 
@@ -206,6 +218,7 @@ class SolutionEnergyPlot(Plot):
 
     def redraw(self):
         self.plot.hold(False)
+        self.plot_front()
 
         sx = []
         sy = []
@@ -219,7 +232,7 @@ class SolutionEnergyPlot(Plot):
         self.plot.scatter(sx, sy, c=val, cmap=plt.cm.jet, vmin=0, vmax=1)
 
 
-class SolutionPrestigePlot(Plot):
+class SolutionPrestigePlot(BaseSolutionPlot):
     def __init__(self, *args, **kwargs):
         super(SolutionPrestigePlot, self).__init__(*args, **kwargs)
 
@@ -230,6 +243,7 @@ class SolutionPrestigePlot(Plot):
 
     def redraw(self):
         self.plot.hold(False)
+        self.plot_front()
 
         sx = []
         sy = []
@@ -244,7 +258,7 @@ class SolutionPrestigePlot(Plot):
         self.plot.scatter(sx, sy, c=val, cmap=plt.cm.jet, vmin=0, vmax=M)
 
 
-class FrontPlot(Plot):
+class FrontPlot(BaseSolutionPlot):
     def __init__(self, *args, **kwargs):
         super(FrontPlot, self).__init__(*args, **kwargs)
 
@@ -255,6 +269,7 @@ class FrontPlot(Plot):
 
     def redraw(self):
         self.plot.hold(False)
+        self.plot_front()
 
         agents = self.alg.all_agents()
         less = lambda a, b: inverslyDominates(a.val, b.val)
