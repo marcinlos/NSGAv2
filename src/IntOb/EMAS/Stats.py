@@ -1,6 +1,7 @@
 
 from ..hypervolume import hypervolume
 from collections import defaultdict
+from time import time
 
 
 class Data(object):
@@ -28,6 +29,8 @@ class Stats(object):
         self.volume = emas.problem.volume
 
         self.time = []
+        self.step_time = [0]
+        self.prev_time = None
         self.data = defaultdict(Data)
         self.total = Data()
 
@@ -60,9 +63,17 @@ class Stats(object):
         return [0 for _ in xrange(self.bin_count)]
 
     def update(self, step):
+
+
         last = self.time[-1] if self.time else -1
         self.time.append(step)
         dt = float(step - last)
+
+        t = time()
+        if self.prev_time:
+            per_step = (t - self.prev_time) / dt
+            self.step_time.append(per_step * 1000)
+        self.prev_time = t
 
         energy = 0
         free_energy = 0
