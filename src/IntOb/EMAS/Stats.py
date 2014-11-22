@@ -33,6 +33,8 @@ class Stats(object):
 
         self.energy_dist = []
 
+        self.elite = []
+        self.elite_energy = []
         self.hvr = []
         self.refpoint = emas.problem.refpoint
 
@@ -67,6 +69,8 @@ class Stats(object):
         population = 0
         reproduction_capable = 0
         travel_capable = 0
+        elite = 0
+        elite_energy = 0
         reproductions = 0
         deaths = 0
         encounters = 0
@@ -139,6 +143,11 @@ class Stats(object):
 
         for agent in self.emas.elite_agents_iter():
             vals.append(agent.val)
+            elite += 1
+            elite_energy += agent.energy
+
+        self.elite.append(elite)
+        self.elite_energy.append(elite_energy)
 
         vol = hypervolume(self.refpoint, vals)
         hvr = vol / self.volume

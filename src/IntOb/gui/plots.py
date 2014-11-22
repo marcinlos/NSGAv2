@@ -16,9 +16,6 @@ class Plot(object):
     def set_metadata(self):
         pass
 
-    def set_style(self):
-        pass
-
     def update(self):
         self.redraw()
         self.set_metadata()
@@ -44,6 +41,7 @@ class EnergyPlot(Plot):
         self.plot.plot(xs, self.data.energy, 'r-', label='agents')
         self.plot.hold(True)
         self.plot.plot(xs, self.data.free_energy, 'g-', label='env')
+        self.plot.plot(xs, self.data.elite_energy, 'b-', label='elite')
         self.plot.legend(fontsize=10)
 
     @property
@@ -117,6 +115,7 @@ class PopulationPlot(Plot):
         self.plot.hold(False)
         self.plot.plot(xs, self.data.population, 'b-', label='all')
         self.plot.hold(True)
+        self.plot.plot(xs, self.data.elite, 'm-', label='elite')
         self.plot.plot(xs, self.data.reproduction_capable, 'g-', label='repr')
         self.plot.plot(xs, self.data.travel_capable, 'c-', label='travel')
         self.plot.legend(fontsize=10)
