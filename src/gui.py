@@ -118,6 +118,7 @@ def parse_params():
     parser.add_argument('--prefix', default='.')
     parser.add_argument('--save', action='store_true')
     parser.add_argument('--dim', type=int, default=30)
+    parser.add_argument('--no-gui', action='store_true')
     return parser.parse_args()
 
 
@@ -144,17 +145,20 @@ if __name__ == '__main__':
     alg = EMAS(problem, **params)
     data = Stats(alg)
 
-    app = QtGui.QApplication(sys.argv)
     lock = Lock()
-    windows = create_windows(conf, args.steps, data, alg, lock)
+    app = QtGui.QApplication(sys.argv)
+
+    if not args.no_gui:
+        windows = create_windows(conf, args.steps, data, alg, lock)
 
     def update(step, P):
         print 'Step {}'.format(step)
         if step % args.stat_freq == 0:
             with lock.writeLock:
                 data.update(step)
-            for w in windows:
-                w.update(step, P)
+            if not args.no_gui:
+                for w in windows:
+                    w.update(step, P)
             if args.save:
                 create_plots(plot_conf, step, args.steps, data, alg, args.prefix)
 
