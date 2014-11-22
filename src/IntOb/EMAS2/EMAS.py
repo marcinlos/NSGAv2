@@ -275,7 +275,7 @@ class Environment(object):
 
     def mutate(self, a):
         p = self.world.params['mutation_probability']
-        return mutation(a, p, self.world.bounds, self.world.max_changes)
+        return mutation(a, p, self.world.problem.bounds, self.world.max_changes)
 
     def dominates(self, a, b):
         return inverslyDominates(b.val, a.val)
@@ -332,18 +332,18 @@ class EMAS(object):
 
     params = default_params
 
-    def __init__(self, fs, bounds, ranges, **params):
-        self.f = lambda x: tuple(f(x) for f in fs)
-        self.bounds = bounds
-        self.ranges = ranges
+    def __init__(self, problem, **params):
+        self.problem = problem
+        self.f = problem.evaluate
         self.params = dict(EMAS.params, **params)
 
-        self.max_changes = [0.1 * (M - m) for m, M in bounds]
+        self.max_changes = [0.1 * (M - m) for m, M in problem.bounds]
         self.world = []
         self.envs = {}
 
         self.create_world()
         self.populate_world()
+
 
     def create_world(self):
         size = self.params['world_size']
@@ -377,7 +377,7 @@ class EMAS(object):
         for island in self.world:
             env = self.envs[island]
             for _ in xrange(N):
-                x = randVector(self.bounds)
+                x = randVector(self.problem.bounds)
                 val = self.f(x)
                 agent = Agent(x, val, energy, env)
                 island.add(agent)
@@ -392,7 +392,7 @@ class EMAS(object):
                 for _ in xrange(N):
                     where = island if not island.elite else choice(self.world)
                     env = self.envs[where]
-                    x = randVector(self.bounds)
+                    x = randVector(self.problem.bounds)
                     val = self.f(x)
                     agent = Agent(x, val, init_energy, env)
                     where.add(agent)

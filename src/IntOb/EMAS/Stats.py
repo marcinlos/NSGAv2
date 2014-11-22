@@ -23,9 +23,9 @@ class Stats(object):
 
     bin_count = 10
 
-    def __init__(self, emas, volume):
+    def __init__(self, emas):
         self.emas = emas
-        self.volume = volume
+        self.volume = emas.problem.volume
 
         self.time = []
         self.data = defaultdict(Data)
@@ -34,7 +34,7 @@ class Stats(object):
         self.energy_dist = []
 
         self.hvr = []
-        self.refpoint = tuple(r[1] for r in emas.ranges)
+        self.refpoint = emas.problem.refpoint
 
     @property
     def islands(self):

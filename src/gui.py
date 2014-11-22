@@ -68,6 +68,7 @@ def parse_params():
     parser.add_argument('steps', help='number of simulation steps', type=int)
     parser.add_argument('param_set', help='predefined parameter set', nargs='?')
     parser.add_argument('--stat-freq', type=int, default=1)
+    parser.add_argument('--dim', type=int, default=30)
     return parser.parse_args()
 
 
@@ -89,14 +90,14 @@ if __name__ == '__main__':
     else:
         params = {}
 
-    F, bounds, ranges, volume = problem_def()
+    problem = problem_def(n=args.dim)
 
-    alg = EMAS(F, bounds, ranges, **params)
-    data = Stats(alg, volume)
+    alg = EMAS(problem, **params)
+    data = Stats(alg)
 
     app = QtGui.QApplication(sys.argv)
     lock = Lock()
-    windows = create_windows(conf, args.steps, lock)
+    windows = create_windows(conf, args.steps, data, alg, lock)
 
     def update(step, P):
         print 'Step {}'.format(step)

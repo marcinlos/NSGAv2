@@ -1,78 +1,85 @@
 
 from itertools import repeat
+import numpy as np
 from math import sqrt, sin, pi
 
 
 g = lambda x: 1 + 9 * sum(x[1:]) / float(len(x) - 1)
 
+class Problem(object):
 
-def ZDT1():
-    F = (
-        lambda x: x[0],
-        lambda x: g(x) * (1 - sqrt(x[0] / g(x)))
-    )
-    n = 30
-    bounds = tuple(repeat((0, 1), n))
-    volume = 2./3 + 9
-    ranges = [(0, 1), (0, 10)]
-    return (F, bounds, ranges, volume)
+    @property
+    def refpoint(self):
+        return tuple(r[1] for r in self.ranges)
 
 
-def ZDT2():
-    F = (
-        lambda x: x[0],
-        lambda x: g(x) * (1 - (x[0] / g(x))**2)
-    )
-    n = 30
-    bounds = tuple(repeat((0, 1), n))
-    volume = 1./3 + 9
-    ranges = [(0, 1), (0, 10)]
-    return (F, bounds, ranges, volume)
+class ZDT1(Problem):
+
+    def __init__(self, n=30):
+        self.bounds = tuple(repeat((0, 1), n))
+        self.volume = 9 + 2.0 / 3
+        self.ranges = [(0, 1), (0, 10)]
+
+        self.front = self.__generate_front(100)
+
+    def __generate_front(self, count):
+        x = np.linspace(0, 1, count)
+        y = 1 - x ** 0.5
+        return [(x, y)]
+
+    def evaluate(self, x):
+        k = g(x)
+        y = k * (1 - sqrt(x[0] / k))
+        return (x[0], y)
 
 
-def ZDT3():
-    F = (
-        lambda x: x[0],
-        lambda x: 0.5 * (1 + g(x) * (1 - sqrt(x[0]/g(x)) - x[0]/g(x) * sin(10*pi*x[0])))
-    )
-    n = 30
-    bounds = tuple(repeat((0, 1), n))
-    volume = 9 + 0.52170099153
-    ranges = [(0, 1), (0, 10)]
-    return (F, bounds, ranges, volume)
+class ZDT2(Problem):
+
+    def __init__(self, n=30):
+        self.bounds = tuple(repeat((0, 1), n))
+        self.volume = 9 + 1.0 / 3
+        self.ranges = [(0, 1), (0, 10)]
+
+        self.front = self.__generate_front(100)
+
+    def __generate_front(self, count):
+        x = np.linspace(0, 1, count)
+        y = 1 - x ** 2
+        return [(x, y)]
+
+    def evaluate(self, x):
+        k = g(x)
+        y = k * (1 - (x[0] / k) ** 2)
+        return (x[0], y)
 
 
-def ZDT1_3D():
-    F = (
-        lambda x: x[0],
-        lambda x: g(x) * (1 - sqrt(x[0] / g(x)))
-    )
-    n = 3
-    bounds = tuple(repeat((0, 1), n))
-    volume = 2./3 + 9
-    ranges = [(0, 1), (0, 10)]
-    return (F, bounds, ranges, volume)
+class ZDT3(Problem):
 
+    def __init__(self, n=30):
+        self.bounds = tuple(repeat((0, 1), n))
+        self.volume = 9 + 0.52170099153
+        self.ranges = [(0, 1), (0, 10)]
 
-def ZDT2_3D():
-    F = (
-        lambda x: x[0],
-        lambda x: g(x) * (1 - (x[0] / g(x))**2)
-    )
-    n = 3
-    bounds = tuple(repeat((0, 1), n))
-    volume = 1./3 + 9
-    ranges = [(0, 1), (0, 10)]
-    return (F, bounds, ranges, volume)
+        self.front = self.__generate_front(20)
 
+    def __generate_front(self, count):
+        ranges = [
+            (0, 0.0830015439),
+            (0.1822287280, 0.2577623634),
+            (0.4093136748, 0.4538821041),
+            (0.6183967944, 0.6525117038),
+            (0.8233317983, 0.8518328654),
+        ]
+        parts = []
+        for a, b in ranges:
+            xs = np.linspace(a, b, count)
+            ys = [0.5 * (2 - sqrt(x) - x * sin(10 * pi * x)) for x in xs]
+            parts.append((xs, ys))
 
-def ZDT3_3D():
-    F = (
-        lambda x: x[0],
-        lambda x: 0.5 * (1 + g(x) * (1 - sqrt(x[0]/g(x)) - x[0]/g(x) * sin(10*pi*x[0])))
-    )
-    n = 3
-    bounds = tuple(repeat((0, 1), n))
-    volume = 9 + 0.51874411074632231777
-    ranges = [(0, 1), (0, 10)]
-    return (F, bounds, ranges, volume)
+        return parts
+
+    def evaluate(self, x):
+        k = g(x)
+        y = 0.5 * (1 + k * (1 - sqrt(x[0]/k)) - x[0]/k * sin(10*pi*x[0]))
+        return (x[0], y)
+
