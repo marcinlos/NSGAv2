@@ -2,8 +2,11 @@
 # encoding: utf-8
 
 from PyQt4 import QtGui
+
 import matplotlib.pyplot as plt
 from IntOb.gui.lock import RWLock as Lock
+from matplotlib.figure import Figure
+from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 
 from IntOb.EMAS import Stats
 from IntOb.EMAS2 import EMAS
@@ -79,14 +82,16 @@ def ensure_path_exists(path):
 def create_plots(conf, step, steps, data, alg, prefix):
     plots = []
     for kind, path in conf:
-        fig, ax = plt.subplots()
+        fig = Figure()
+        ax = fig.add_subplot(111)
         plot = kind(fig, ax, steps, data, alg)
         plot.update()
         directory = '{}/{}'.format(prefix, path)
         ensure_path_exists(directory)
         out = '{}/{}.png'.format(directory, step)
-        fig.savefig(out, dpi=200)
-        plt.close(fig)
+
+        canvas = FigureCanvas(fig)
+        canvas.print_figure(out, dpi=200)
 
 
 def create_windows(conf, steps, data, alg, lock):
