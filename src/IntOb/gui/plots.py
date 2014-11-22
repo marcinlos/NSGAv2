@@ -1,6 +1,7 @@
 
 import matplotlib.pyplot as plt
 from ..utils import maximal, inverslyDominates
+from matplotlib.ticker import FuncFormatter
 
 
 class Plot(object):
@@ -20,6 +21,11 @@ class Plot(object):
         self.redraw()
         self.set_metadata()
 
+    def set_step_axis(self):
+        if self.steps >= 8000:
+            fmt = lambda x, pos: '{}K'.format(int(x / 1000))
+            self.plot.xaxis.set_major_formatter(FuncFormatter(fmt))
+
     @property
     def step_axis(self):
         return [0, self.steps]
@@ -33,6 +39,7 @@ class EnergyPlot(Plot):
         self.plot.set_title('Total energy')
         self.plot.set_xlim(self.step_axis)
         self.plot.set_ylim(self.energy_axis)
+        self.set_step_axis()
 
     def redraw(self):
         xs = self.data.time
@@ -60,6 +67,7 @@ class EnergyDistributionPlot(Plot):
         self.plot.set_title('Energy distribution')
         self.plot.set_xlim(self.step_axis)
         self.plot.set_ylim([0, 1])
+        self.set_step_axis()
 
     def redraw(self):
         xs = self.data.time
@@ -86,6 +94,7 @@ class EnergyPerIslandPlot(Plot):
         self.plot.set_title('Energy per island')
         self.plot.set_xlim(self.step_axis)
         self.plot.set_ylim(self.energy_axis)
+        self.set_step_axis()
 
     def redraw(self):
         xs = self.data.time
@@ -108,6 +117,7 @@ class PopulationPlot(Plot):
     def set_metadata(self):
         self.plot.set_title('Total population size')
         self.plot.set_xlim(self.step_axis)
+        self.set_step_axis()
 
     def redraw(self):
         xs = self.data.time
@@ -294,6 +304,7 @@ class HVRPlot(Plot):
         self.plot.set_xlim(self.step_axis)
         self.plot.set_ylim(top=1)
         self.plot.grid(True)
+        self.set_step_axis()
 
     def redraw(self):
         xs = self.data.time
@@ -324,6 +335,7 @@ class ReproductionPlot(Plot):
     def set_metadata(self):
         self.plot.set_title('Reproductions')
         self.plot.set_xlim(self.step_axis)
+        self.set_step_axis()
 
     def redraw(self):
         xs = self.data.time
@@ -338,6 +350,7 @@ class DeathsPlot(Plot):
     def set_metadata(self):
         self.plot.set_title('Deaths')
         self.plot.set_xlim(self.step_axis)
+        self.set_step_axis()
 
     def redraw(self):
         xs = self.data.time
@@ -352,6 +365,7 @@ class LifeCyclePlot(Plot):
     def set_metadata(self):
         self.plot.set_title('Life & death')
         self.plot.set_xlim(self.step_axis)
+        self.set_step_axis()
 
     def redraw(self):
         xs = self.data.time
@@ -370,6 +384,7 @@ class RNIPlot(Plot):
     def set_metadata(self):
         self.plot.set_title('Rate of Natural Increase')
         self.plot.set_xlim(self.step_axis)
+        self.set_step_axis()
 
     def redraw(self):
         xs = self.data.time
@@ -394,6 +409,7 @@ class TravelPlot(Plot):
     def set_metadata(self):
         self.plot.set_title('Travel')
         self.plot.set_xlim(self.step_axis)
+        self.set_step_axis()
 
     def redraw(self):
         xs = self.data.time
@@ -408,6 +424,7 @@ class EncounterPlot(Plot):
     def set_metadata(self):
         self.plot.set_title('Encounters')
         self.plot.set_xlim(self.step_axis)
+        self.set_step_axis()
 
     def redraw(self):
         xs = self.data.time
@@ -429,6 +446,7 @@ class AgentEnergyPlot(Plot):
         self.plot.set_title('Avg agent energy')
         self.plot.set_xlim(self.step_axis)
         self.plot.set_ylim(bottom=0)
+        self.set_step_axis()
 
     def make_series(self, value):
         return [value for _ in self.data.time]
