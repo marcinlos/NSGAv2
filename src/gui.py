@@ -2,6 +2,7 @@
 # encoding: utf-8
 
 from PyQt4 import QtGui
+import matplotlib.pyplot as plt
 from IntOb.gui.lock import RWLock as Lock
 
 from IntOb.EMAS import Stats
@@ -11,6 +12,8 @@ from IntOb.EMAS.param_sets import param_sets
 from IntOb.gui import *
 from IntOb.problems import *
 
+import os
+import errno
 import sys
 import argparse
 
@@ -48,7 +51,45 @@ conf = [
 ]
 
 
-def create_windows(conf, steps, lock):
+plot_conf = {
+    (EnergyPlot, 'energy'),
+    (EnergyDistributionPlot, 'energy_distribution'),
+    (SolutionEnergyPlot, 'solution_energy'),
+    (SolutionDensityPlot, 'density'),
+    (SolutionPrestigePlot, 'prestige'),
+    (EnergyPerIslandPlot, 'energy_per_island'),
+    (PopulationPlot, 'population'),
+    (EliteSolutionPlot, 'elite_solutions'),
+    (SolutionPlot, 'solutions'),
+    (FrontPlot, 'front'),
+    (HVRPlot, 'hvr'),
+    (LifeCyclePlot, 'lifecycle'),
+    (TravelPlot, 'travel'),
+    (EncounterPlot, 'encounters'),
+    (AgentEnergyPlot, 'agent_energy'),
+}
+
+def ensure_path_exists(path):
+    try:
+        os.makedirs(path)
+    except OSError as e:
+        if e.errno != errno.EEXIST:
+            raise
+
+def create_plots(conf, step, steps, data, alg, prefix):
+    plots = []
+    for kind, path in conf:
+        fig, ax = plt.subplots()
+        plot = kind(fig, ax, steps, data, alg)
+        plot.update()
+        directory = '{}/{}'.format(prefix, path)
+        ensure_path_exists(directory)
+        out = '{}/{}.png'.format(directory, step)
+        fig.savefig(out, dpi=200)
+        plt.close(fig)
+
+
+def create_windows(conf, steps, data, alg, lock):
     windows = []
 
     for page in conf:
