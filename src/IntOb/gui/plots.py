@@ -328,6 +328,21 @@ class HVRPlot(Plot):
         )
 
 
+class TimePlot(Plot):
+    def __init__(self, *args, **kwargs):
+        super(TimePlot, self).__init__(*args, **kwargs)
+
+    def set_metadata(self):
+        self.plot.set_title('Step time [ms]')
+        self.plot.set_xlim(self.step_axis)
+        self.set_step_axis()
+
+    def redraw(self):
+        xs = self.data.time
+        self.plot.hold(False)
+        self.plot.plot(xs, self.data.step_time, 'r-')
+
+
 class ReproductionPlot(Plot):
     def __init__(self, *args, **kwargs):
         super(ReproductionPlot, self).__init__(*args, **kwargs)

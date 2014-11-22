@@ -41,7 +41,7 @@ conf = [
     'rows': 2, 'cols': 2,
     'plots': [
         EncounterPlot, LifeCyclePlot,
-        RNIPlot, PopulationPlot
+        TimePlot, PopulationPlot
     ]
 },
 {
@@ -70,6 +70,7 @@ plot_conf = {
     (TravelPlot, 'travel'),
     (EncounterPlot, 'encounters'),
     (AgentEnergyPlot, 'agent_energy'),
+    (TimePlot, 'time'),
 }
 
 def ensure_path_exists(path):
