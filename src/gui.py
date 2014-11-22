@@ -109,6 +109,8 @@ def parse_params():
     parser.add_argument('steps', help='number of simulation steps', type=int)
     parser.add_argument('param_set', help='predefined parameter set', nargs='?')
     parser.add_argument('--stat-freq', type=int, default=1)
+    parser.add_argument('--prefix', default='.')
+    parser.add_argument('--save', action='store_true')
     parser.add_argument('--dim', type=int, default=30)
     return parser.parse_args()
 
@@ -147,6 +149,8 @@ if __name__ == '__main__':
                 data.update(step)
             for w in windows:
                 w.update(step, P)
+            if args.save:
+                create_plots(plot_conf, step, args.steps, data, alg, args.prefix)
 
     computation = ComputationThread(alg, args.steps, update)
     computation.start()
