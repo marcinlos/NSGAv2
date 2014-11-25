@@ -233,7 +233,37 @@ class Environment(object):
                 a12 = Agent(x12.x, v12, 0, self)
 
                 e = self.init_energy
+                ft = self.fight_transfer
 
+                # if self.dominates(a1, a2):
+                #     self.transfer(a12, a2, (a2.energy - ft) / 2)
+                #     self.transfer(a12, a1, e - (a2.energy - ft) / 2)
+                #     self.transfer(a21, a2, (a2.energy - ft) / 2)
+                #     self.transfer(a21, a1, e - (a2.energy - ft) / 2)
+                # elif self.dominates(a2, a1):
+                #     self.transfer(a12, a1, (a1.energy - ft) / 2)
+                #     self.transfer(a12, a2, e - (a1.energy - ft) / 2)
+                #     self.transfer(a21, a1, (a1.energy - ft) / 2)
+                #     self.transfer(a21, a2, e - (a1.energy - ft) / 2)
+                # else:
+                #     if a1.won <= a2.won:
+                #         a1, a2 = a2, a1
+                #     if a1.won > a2.won:
+                #         if a2.lost > 0:
+                #             self.transfer(a12, a2, (a2.energy - 2*ft) / 2)
+                #             self.transfer(a12, a1, e - (a2.energy - 2*ft) / 2)
+                #             self.transfer(a21, a2, (a2.energy - 2*ft) / 2)
+                #             self.transfer(a21, a1, e - (a2.energy - 2*ft) / 2)
+                #         elif a2.lost == 0:
+                #             self.transfer(a12, a1, (a1.energy - 2*ft) / 2)
+                #             self.transfer(a12, a2, e - (a1.energy - 2*ft) / 2)
+                #             self.transfer(a21, a1, (a1.energy - 2*ft) / 2)
+                #             self.transfer(a21, a2, e - (a1.energy - 2*ft) / 2)
+                #     else:
+                #         self.transfer(a21, a1, e / 2)
+                #         self.transfer(a12, a1, e / 2)
+                #         self.transfer(a21, a2, e / 2)
+                #         self.transfer(a12, a2, e / 2)
                 self.transfer(a21, a1, e / 2)
                 self.transfer(a12, a1, e / 2)
                 self.transfer(a21, a2, e / 2)
